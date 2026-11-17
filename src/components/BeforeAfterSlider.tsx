@@ -47,15 +47,14 @@ export const BeforeAfterSlider: React.FC<BeforeAfterSliderProps> = ({
   };
 
   return (
-    <div className="w-full select-none">
+    <div className="w-full select-none space-y-2">
       <div
         ref={containerRef}
         onPointerDown={handlePointerDown}
         onPointerMove={handlePointerMove}
         onPointerUp={handlePointerUp}
-        className="relative w-full aspect-square max-h-[420px] mx-auto rounded-[20px] overflow-hidden shadow-lg border-2 border-[#FFE3DE] cursor-ew-resize touch-none bg-[#FFF9F0]"
+        className="relative w-full aspect-square max-h-[340px] mx-auto rounded-[20px] overflow-hidden shadow-md border-2 border-[#FFD5B5] cursor-ew-resize touch-none bg-white"
       >
-        {/* Background: AFTER image (Future pet photo) */}
         <img
           src={afterImage}
           alt={afterLabel}
@@ -63,7 +62,6 @@ export const BeforeAfterSlider: React.FC<BeforeAfterSliderProps> = ({
           className="absolute inset-0 w-full h-full object-cover pointer-events-none"
         />
 
-        {/* Foreground clipped: BEFORE image (Original pet photo) */}
         <div
           className="absolute inset-0 overflow-hidden pointer-events-none"
           style={{ clipPath: `inset(0 ${100 - sliderPos}% 0 0)` }}
@@ -76,53 +74,46 @@ export const BeforeAfterSlider: React.FC<BeforeAfterSliderProps> = ({
           />
         </div>
 
-        {/* Top-left & Top-right floating comparison badges */}
-        <div className="absolute bottom-3 left-3 z-10 bg-[#4A4E69]/85 backdrop-blur-sm text-white text-xs font-bold px-3 py-1.5 rounded-full shadow">
-          BEFORE · {beforeLabel}
+        <div className="absolute bottom-2.5 left-2.5 z-10 bg-[#4A90E2]/90 text-white text-xs font-extrabold px-3 py-1 rounded-full shadow">
+          {beforeLabel}
         </div>
-        <div className="absolute bottom-3 right-3 z-10 bg-[#FF7E67]/95 backdrop-blur-sm text-white text-xs font-bold px-3 py-1.5 rounded-full shadow">
-          AFTER · {afterLabel}
+        <div className="absolute bottom-2.5 right-2.5 z-10 bg-[#FF8A3D]/95 text-white text-xs font-extrabold px-3 py-1 rounded-full shadow">
+          {afterLabel}
         </div>
 
-        {/* Vertical divider line & draggable handle */}
         <div
-          className="absolute top-0 bottom-0 z-20 w-0.5 bg-white shadow-[0_0_12px_rgba(0,0,0,0.45)] pointer-events-none"
+          className="absolute top-0 bottom-0 z-20 w-0.5 bg-white shadow-[0_0_10px_rgba(0,0,0,0.4)] pointer-events-none"
           style={{ left: `${sliderPos}%` }}
         >
-          <div className="absolute top-1/2 -translate-x-1/2 -translate-y-1/2 w-11 h-11 rounded-full bg-[#FF7E67] border-3 border-white shadow-lg flex items-center justify-center text-white transition-transform scale-100">
+          <div className="absolute top-1/2 -translate-x-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-gradient-to-r from-[#FF8A3D] to-[#FF6B9D] border-2 border-white shadow-lg flex items-center justify-center text-white">
             <MoveHorizontal className="w-5 h-5" />
           </div>
         </div>
       </div>
 
-      {/* Helper caption & quick range slider for accessibility */}
-      <div className="mt-2.5 flex items-center justify-between gap-3 px-1">
-        <span className="text-xs font-medium text-[#6C708A]">
-          👆 사진을 좌우로 드래그하여 현재 모습과 미래 모습을 비교해 보세요
-        </span>
-        <div className="flex items-center gap-1.5 shrink-0">
-          <button
-            type="button"
-            onClick={() => setSliderPos(85)}
-            className="text-xs px-2.5 py-1 rounded-full bg-[#FFF2EF] text-[#4A4E69] hover:bg-[#FFE3DE] font-semibold transition"
-          >
-            원본 크게
-          </button>
-          <button
-            type="button"
-            onClick={() => setSliderPos(50)}
-            className="text-xs px-2.5 py-1 rounded-full bg-[#FFF2EF] text-[#FF7E67] hover:bg-[#FFE3DE] font-semibold transition"
-          >
-            반반 비교
-          </button>
-          <button
-            type="button"
-            onClick={() => setSliderPos(15)}
-            className="text-xs px-2.5 py-1 rounded-full bg-[#FF7E67] text-white hover:bg-[#F5644A] font-semibold transition"
-          >
-            미래 크게
-          </button>
-        </div>
+      {/* Minimal 3-Button Switcher */}
+      <div className="grid grid-cols-3 gap-1.5">
+        <button
+          type="button"
+          onClick={() => setSliderPos(88)}
+          className="min-h-[38px] rounded-[12px] bg-[#EEF6FF] text-[#4A90E2] text-xs font-extrabold cursor-pointer active:scale-95 transition"
+        >
+          현재 크게
+        </button>
+        <button
+          type="button"
+          onClick={() => setSliderPos(50)}
+          className="min-h-[38px] rounded-[12px] bg-[#FFF0F6] text-[#FF6B9D] text-xs font-extrabold cursor-pointer active:scale-95 transition"
+        >
+          반반 비교
+        </button>
+        <button
+          type="button"
+          onClick={() => setSliderPos(12)}
+          className="min-h-[38px] rounded-[12px] bg-[#FF8A3D] text-white text-xs font-extrabold cursor-pointer active:scale-95 transition"
+        >
+          미래 크게
+        </button>
       </div>
     </div>
   );

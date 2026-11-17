@@ -2,8 +2,8 @@
 
 @layer base {
   html, body {
-    background-color: #F7F3EE;
-    color: #4A4E69;
+    background: linear-gradient(135deg, #FFF6F0 0%, #FFF0F6 50%, #EEF6FF 100%);
+    color: #2B2D42;
     font-family: "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont, system-ui, Roboto, "Noto Sans KR", sans-serif;
     overflow-x: hidden;
     -webkit-tap-highlight-color: transparent;
@@ -23,12 +23,12 @@
 }
 
 .custom-scrollbar::-webkit-scrollbar-track {
-  background: #FFF9F0;
+  background: #FFF3E8;
   border-radius: 9999px;
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb {
-  background: #FFC5BB;
+  background: #FFB6C1;
   border-radius: 9999px;
 }
 
@@ -42,7 +42,7 @@
 }
 
 .animate-shimmer {
-  background: linear-gradient(90deg, #FF7E67 0%, #FFB199 50%, #FF7E67 100%);
+  background: linear-gradient(90deg, #FF8A3D 0%, #FF6B9D 50%, #4A90E2 100%);
   background-size: 200% 100%;
   animation: shimmerBar 2s linear infinite;
 }

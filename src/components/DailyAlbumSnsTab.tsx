@@ -23,27 +23,27 @@ interface DailyAlbumSnsTabProps {
 const SHORTS_THEMES = [
   {
     id: 'vlog',
-    label: '✨ 일상 브이로그',
-    subtitlePrefix: '오늘도 심쿵한 하루',
-    accentHex: '#FF7E67',
+    label: '🧡 일상',
+    subtitlePrefix: '오늘의 귀여움',
+    accentHex: '#FF8A3D',
     bgTop: '#2B2D42',
     emoji: '🐾',
   },
   {
-    id: 'health',
-    label: '🩺 건강백점 일기',
-    subtitlePrefix: 'AI 건강검진 만점 받은 날',
-    accentHex: '#2F6F6B',
-    bgTop: '#1F4B48',
-    emoji: '💚',
+    id: 'growth',
+    label: '💗 성장',
+    subtitlePrefix: '심쿵 성장일기',
+    accentHex: '#FF6B9D',
+    bgTop: '#3E2336',
+    emoji: '🍼',
   },
   {
-    id: 'growth',
-    label: '💖 폭풍성장 기록',
-    subtitlePrefix: '하루하루 더 사랑스러운',
-    accentHex: '#E06D85',
-    bgTop: '#4A2535',
-    emoji: '🍼',
+    id: 'health',
+    label: '💙 건강',
+    subtitlePrefix: '건강 만점 기록',
+    accentHex: '#4A90E2',
+    bgTop: '#1E3552',
+    emoji: '✨',
   },
 ];
 
@@ -54,9 +54,8 @@ export const DailyAlbumSnsTab: React.FC<DailyAlbumSnsTabProps> = ({
 }) => {
   const [studioMode, setStudioMode] = useState<'shorts' | 'album'>('shorts');
   const [selectedTheme, setSelectedTheme] = useState(SHORTS_THEMES[0]);
-  const [customTitle, setCustomTitle] = useState<string>(
-    `${analysisResult.petName}의 행복한 오늘 기록 🐾`
-  );
+  // Starts empty so faint placeholder guide text shows and disappears when user types!
+  const [customTitle, setCustomTitle] = useState<string>('');
   const [isPlayingShorts, setIsPlayingShorts] = useState<boolean>(true);
   const [isRecordingShorts, setIsRecordingShorts] = useState<boolean>(false);
   const [toastMsg, setToastMsg] = useState<string>('');
@@ -66,6 +65,9 @@ export const DailyAlbumSnsTab: React.FC<DailyAlbumSnsTabProps> = ({
   const shortsCanvasRef = useRef<HTMLCanvasElement | null>(null);
   const multiInputRef = useRef<HTMLInputElement | null>(null);
   const cameraQuickRef = useRef<HTMLInputElement | null>(null);
+
+  const effectiveTitle =
+    customTitle.trim() || `${analysisResult.petName}의 행복한 하루 🐾`;
 
   useEffect(() => {
     let active = true;
@@ -88,7 +90,7 @@ export const DailyAlbumSnsTab: React.FC<DailyAlbumSnsTabProps> = ({
     };
   }, [dailyLogs]);
 
-  // Generate 4-Cut Album Collage Preview whenever images or title/theme change
+  // Generate 4-Cut Album Collage Preview
   useEffect(() => {
     if (loadedImages.length === 0) return;
     const canvas = document.createElement('canvas');
@@ -97,7 +99,7 @@ export const DailyAlbumSnsTab: React.FC<DailyAlbumSnsTabProps> = ({
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    ctx.fillStyle = '#FFFDF9';
+    ctx.fillStyle = '#FFFFFF';
     ctx.fillRect(0, 0, 1080, 1350);
 
     ctx.fillStyle = selectedTheme.accentHex;
@@ -107,7 +109,7 @@ export const DailyAlbumSnsTab: React.FC<DailyAlbumSnsTabProps> = ({
 
     ctx.fillStyle = '#FFFFFF';
     ctx.font = 'bold 36px "Pretendard Variable", Pretendard, sans-serif';
-    ctx.fillText(`🐾 ${customTitle}`, 88, 116);
+    ctx.fillText(`🐾 ${effectiveTitle}`, 88, 116);
 
     const slots = [0, 1, 2, 3].map((i) => loadedImages[i % loadedImages.length]);
     const boxSize = 468;
@@ -139,25 +141,25 @@ export const DailyAlbumSnsTab: React.FC<DailyAlbumSnsTabProps> = ({
       ctx.restore();
     });
 
-    ctx.fillStyle = '#4A4E69';
+    ctx.fillStyle = '#2B2D42';
     ctx.font = 'bold 26px "Pretendard Variable", Pretendard, sans-serif';
     ctx.fillText(
-      `AI 종합 건강 ${dailyLogs[0]?.nutritionScore || 96}점 · ${analysisResult.petName}(${analysisResult.estimatedBreed})`,
+      `AI 컨디션 ${dailyLogs[0]?.nutritionScore || 96}점 · ${analysisResult.petName}`,
       54,
       1235
     );
-    ctx.fillStyle = '#6C708A';
-    ctx.font = '500 22px "Pretendard Variable", Pretendard, sans-serif';
+    ctx.fillStyle = '#4A90E2';
+    ctx.font = '600 22px "Pretendard Variable", Pretendard, sans-serif';
     ctx.fillText(
-      `#${analysisResult.petName} #반려동물일기 #펫타임 #쇼츠 #멍스타그램 #냥스타그램`,
+      `#${analysisResult.petName} #반려동물 #펫타임 #쇼츠`,
       54,
       1280
     );
 
     setAlbumPreviewUrl(canvas.toDataURL('image/png'));
-  }, [loadedImages, selectedTheme, customTitle, dailyLogs, analysisResult]);
+  }, [loadedImages, selectedTheme, effectiveTitle, dailyLogs, analysisResult]);
 
-  // Live 9:16 Vertical YouTube Shorts / Instagram Reels Canvas Renderer
+  // Live 9:16 Vertical Shorts Renderer
   useEffect(() => {
     if (studioMode !== 'shorts') return;
     const canvas = shortsCanvasRef.current;
@@ -206,24 +208,20 @@ export const DailyAlbumSnsTab: React.FC<DailyAlbumSnsTabProps> = ({
       ctx.fillStyle = '#FFFFFF';
       ctx.font = 'bold 21px "Pretendard Variable", Pretendard, sans-serif';
       ctx.fillText(
-        `${selectedTheme.emoji} ${analysisResult.petName} · ${currentLog?.dateStr || '오늘'} 기록`,
+        `${selectedTheme.emoji} ${analysisResult.petName} · ${currentLog?.dateStr || '오늘'}`,
         44,
         68
       );
 
       ctx.fillStyle = selectedTheme.accentHex;
       ctx.beginPath();
-      ctx.roundRect(w - 205, 132, 160, 40, 20);
+      ctx.roundRect(w - 195, 132, 150, 40, 20);
       ctx.fill();
       ctx.fillStyle = '#FFFFFF';
       ctx.font = 'bold 16px "Pretendard Variable", Pretendard, sans-serif';
-      ctx.fillText(
-        `AI 컨디션 ${currentLog?.nutritionScore || 96}점 ✨`,
-        w - 188,
-        158
-      );
+      ctx.fillText(`컨디션 ${currentLog?.nutritionScore || 96}점 ✨`, w - 178, 158);
 
-      ctx.fillStyle = '#FFFDF9';
+      ctx.fillStyle = '#FFFFFF';
       ctx.beginPath();
       ctx.roundRect(24, h - 160, w - 48, 128, 24);
       ctx.fill();
@@ -231,19 +229,19 @@ export const DailyAlbumSnsTab: React.FC<DailyAlbumSnsTabProps> = ({
       ctx.fillStyle = selectedTheme.accentHex;
       ctx.font = 'bold 17px "Pretendard Variable", Pretendard, sans-serif';
       ctx.fillText(
-        `${selectedTheme.subtitlePrefix} · 컷 ${slideIdx + 1}/${loadedImages.length}`,
+        `${selectedTheme.subtitlePrefix} (${slideIdx + 1}/${loadedImages.length})`,
         46,
         h - 122
       );
 
-      ctx.fillStyle = '#4A4E69';
+      ctx.fillStyle = '#2B2D42';
       ctx.font = 'bold 23px "Pretendard Variable", Pretendard, sans-serif';
-      ctx.fillText(customTitle.slice(0, 22), 46, h - 86);
+      ctx.fillText(effectiveTitle.slice(0, 22), 46, h - 86);
 
-      ctx.fillStyle = '#6C708A';
-      ctx.font = '500 16px "Pretendard Variable", Pretendard, sans-serif';
+      ctx.fillStyle = '#4A90E2';
+      ctx.font = '600 16px "Pretendard Variable", Pretendard, sans-serif';
       ctx.fillText(
-        `#${analysisResult.petName} #${analysisResult.estimatedBreed.replace(/\s+/g, '')} #펫타임AI`,
+        `#${analysisResult.petName} #${analysisResult.species} #펫타임`,
         46,
         h - 52
       );
@@ -255,14 +253,14 @@ export const DailyAlbumSnsTab: React.FC<DailyAlbumSnsTabProps> = ({
 
     animId = requestAnimationFrame(renderFrame);
     return () => cancelAnimationFrame(animId);
-  }, [studioMode, loadedImages, dailyLogs, selectedTheme, customTitle, isPlayingShorts, analysisResult]);
+  }, [studioMode, loadedImages, dailyLogs, selectedTheme, effectiveTitle, isPlayingShorts, analysisResult]);
 
   const handleAddMultipleMedia = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files: File[] = Array.from(e.target.files || []);
     if (files.length === 0) return;
 
     const today = new Date();
-    const dateStr = `${today.getMonth() + 1}월 ${today.getDate()}일`;
+    const dateStr = `${today.getMonth() + 1}/${today.getDate()}`;
 
     for (const file of files) {
       try {
@@ -272,7 +270,7 @@ export const DailyAlbumSnsTab: React.FC<DailyAlbumSnsTabProps> = ({
           dateStr,
           dataUrl: extracted.photoDataUrl,
           isFromVideo: extracted.isFromVideo,
-          memo: `${analysisResult.petName} 데일리 스냅`,
+          memo: `${analysisResult.petName}`,
           nutritionScore: 96,
           coatGlossScore: 97,
           bcsStage: 5,
@@ -282,15 +280,14 @@ export const DailyAlbumSnsTab: React.FC<DailyAlbumSnsTabProps> = ({
         // ignore
       }
     }
-    showToast(`${files.length}개 사진·영상이 쇼츠와 앨범에 반영되었어요!`);
+    showToast(`${files.length}개 추가 완료!`);
   };
 
   const showToast = (msg: string) => {
     setToastMsg(msg);
-    setTimeout(() => setToastMsg(''), 3200);
+    setTimeout(() => setToastMsg(''), 2500);
   };
 
-  // Record & Share/Download 9:16 Vertical Shorts Video
   const handleSaveOrShareShortsVideo = (useMobileShare: boolean) => {
     const canvas = shortsCanvasRef.current;
     if (!canvas || isRecordingShorts) return;
@@ -311,22 +308,21 @@ export const DailyAlbumSnsTab: React.FC<DailyAlbumSnsTabProps> = ({
 
       recorder.onstop = async () => {
         const blob = new Blob(chunks, { type: mimeType });
-        const fileName = `쇼츠_${analysisResult.petName}_데일리영상.webm`;
+        const fileName = `쇼츠_${analysisResult.petName}.webm`;
 
         if (useMobileShare && navigator.share) {
           try {
             const file = new File([blob], fileName, { type: 'video/webm' });
             if (navigator.canShare && navigator.canShare({ files: [file] })) {
               await navigator.share({
-                title: customTitle,
-                text: `${customTitle} #${analysisResult.petName} #펫타임`,
+                title: effectiveTitle,
                 files: [file],
               });
               setIsRecordingShorts(false);
               return;
             }
           } catch {
-            // fallback to download
+            // fallback
           }
         }
 
@@ -339,22 +335,21 @@ export const DailyAlbumSnsTab: React.FC<DailyAlbumSnsTabProps> = ({
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
         setIsRecordingShorts(false);
-        showToast('유튜브 쇼츠·릴스 세로 영상이 저장되었어요!');
+        showToast('쇼츠 영상 저장 완료!');
       };
 
       recorder.start();
       setTimeout(() => {
         if (recorder.state === 'recording') recorder.stop();
-      }, 3200);
+      }, 3100);
     } catch {
       setIsRecordingShorts(false);
     }
   };
 
-  // Share or Download 4-Cut Album Image
   const handleSaveOrShareAlbum = async (useMobileShare: boolean) => {
     if (!albumPreviewUrl) return;
-    const fileName = `펫타임_${analysisResult.petName}_4컷앨범.png`;
+    const fileName = `앨범_${analysisResult.petName}.png`;
 
     if (useMobileShare && navigator.share) {
       try {
@@ -363,14 +358,13 @@ export const DailyAlbumSnsTab: React.FC<DailyAlbumSnsTabProps> = ({
         const file = new File([blob], fileName, { type: 'image/png' });
         if (navigator.canShare && navigator.canShare({ files: [file] })) {
           await navigator.share({
-            title: customTitle,
-            text: `${customTitle} #${analysisResult.petName} #펫타임`,
+            title: effectiveTitle,
             files: [file],
           });
           return;
         }
       } catch {
-        // fallback to download
+        // fallback
       }
     }
 
@@ -380,28 +374,26 @@ export const DailyAlbumSnsTab: React.FC<DailyAlbumSnsTabProps> = ({
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
-    showToast('인스타·카톡 4컷 앨범이 폰에 저장되었어요!');
+    showToast('4컷 앨범 저장 완료!');
   };
 
   const handleCopySnsTags = async () => {
-    const snsText = `${customTitle}\n✨ AI 오늘의 건강·영양 체크: ${dailyLogs[0]?.nutritionScore || 96}점\n\n#${analysisResult.petName} #${analysisResult.estimatedBreed.replace(/\s+/g, '')} #${analysisResult.species} #반려동물브이로그 #펫타임 #쇼츠 #Shorts`;
+    const snsText = `${effectiveTitle}\n#${analysisResult.petName} #${analysisResult.species} #펫타임 #쇼츠 #Shorts`;
     try {
       await navigator.clipboard.writeText(snsText);
-      showToast('유튜브·인스타 제목과 해시태그가 복사되었어요!');
+      showToast('제목·해시태그 복사 완료!');
     } catch {
-      showToast('해시태그 준비 완료!');
+      showToast('복사 완료!');
     }
   };
 
   return (
-    <div className="space-y-3">
-      {/* 1. COMPACT MOBILE PHOTO/VIDEO STRIP + CAMERA/GALLERY BUTTONS */}
-      <div className="bg-white rounded-[20px] p-3.5 border border-[#FFE3DE] space-y-2.5">
+    <div className="space-y-2.5">
+      {/* 1. COMPACT PHOTO/VIDEO STRIP + INPUT WITH FAINT PLACEHOLDER */}
+      <div className="bg-white rounded-[20px] p-3.5 border border-[#FFC4DC] space-y-2.5">
         <div className="flex items-center justify-between">
-          <h2 className="text-sm font-extrabold text-[#4A4E69]">
-            원터치 유튜브 쇼츠 & 4컷 앨범 스튜디오
-          </h2>
-          <span className="text-[11px] font-extrabold px-2 py-0.5 rounded-full bg-[#FFF2EF] text-[#FF7E67]">
+          <h2 className="text-sm font-extrabold text-[#2B2D42]">쇼츠 · 4컷 앨범</h2>
+          <span className="text-[11px] font-extrabold px-2.5 py-0.5 rounded-full bg-[#FFF0F6] text-[#FF6B9D]">
             {dailyLogs.length}컷
           </span>
         </div>
@@ -410,33 +402,33 @@ export const DailyAlbumSnsTab: React.FC<DailyAlbumSnsTabProps> = ({
           <button
             type="button"
             onClick={() => cameraQuickRef.current?.click()}
-            className="shrink-0 w-16 h-16 rounded-[14px] bg-[#FF7E67] text-white flex flex-col items-center justify-center gap-1 active:scale-95 transition cursor-pointer"
+            className="shrink-0 w-15 h-15 rounded-[14px] bg-[#FF8A3D] text-white flex flex-col items-center justify-center gap-0.5 active:scale-95 transition cursor-pointer"
           >
             <Camera className="w-4 h-4" />
-            <span className="text-[10px] font-extrabold">바로촬영</span>
+            <span className="text-[10px] font-extrabold">촬영</span>
           </button>
 
           <button
             type="button"
             onClick={() => multiInputRef.current?.click()}
-            className="shrink-0 w-16 h-16 rounded-[14px] border-2 border-dashed border-[#FF7E67] bg-[#FFF2EF] text-[#FF7E67] flex flex-col items-center justify-center gap-1 active:scale-95 transition cursor-pointer"
+            className="shrink-0 w-15 h-15 rounded-[14px] border-2 border-dashed border-[#4A90E2] bg-[#EEF6FF] text-[#4A90E2] flex flex-col items-center justify-center gap-0.5 active:scale-95 transition cursor-pointer"
           >
             <Plus className="w-4 h-4" />
-            <span className="text-[10px] font-extrabold">앨범추가</span>
+            <span className="text-[10px] font-extrabold">추가</span>
           </button>
 
           {dailyLogs.map((item, idx) => (
             <div
               key={item.id}
-              className="relative shrink-0 w-16 h-16 rounded-[14px] overflow-hidden border border-[#FFE3DE]"
+              className="relative shrink-0 w-15 h-15 rounded-[14px] overflow-hidden border border-[#FFD5B5]"
             >
               <img
                 src={item.dataUrl}
                 alt={item.dateStr}
                 className="w-full h-full object-cover"
               />
-              <span className="absolute bottom-0 inset-x-0 bg-[#2B2D42]/80 text-white text-[9px] font-bold text-center py-0.5">
-                {idx + 1}컷
+              <span className="absolute bottom-0 inset-x-0 bg-[#2B2D42]/75 text-white text-[9px] font-bold text-center">
+                {idx + 1}
               </span>
             </div>
           ))}
@@ -459,17 +451,25 @@ export const DailyAlbumSnsTab: React.FC<DailyAlbumSnsTabProps> = ({
           className="hidden"
         />
 
-        {/* 1-Touch Theme Pills */}
+        {/* Faint Placeholder Input (Disappears when user types!) */}
+        <input
+          type="text"
+          value={customTitle}
+          onChange={(e) => setCustomTitle(e.target.value)}
+          placeholder="영상·앨범 제목 입력 (비워두면 기본 제목 자동 적용)"
+          className="w-full min-h-[40px] px-3 rounded-[12px] bg-[#FFF8FB] border border-[#FFC4DC] text-xs font-bold text-[#2B2D42] placeholder:text-[#B08D9E] placeholder:font-normal focus:outline-none focus:ring-2 focus:ring-[#FF6B9D]"
+        />
+
         <div className="grid grid-cols-3 gap-1.5">
           {SHORTS_THEMES.map((t) => (
             <button
               key={t.id}
               type="button"
               onClick={() => setSelectedTheme(t)}
-              className={`min-h-[38px] rounded-[10px] text-[11px] font-extrabold border transition cursor-pointer ${
+              className={`min-h-[36px] rounded-[10px] text-xs font-extrabold border transition cursor-pointer ${
                 selectedTheme.id === t.id
-                  ? 'bg-[#FF7E67] text-white border-[#FF7E67]'
-                  : 'bg-[#FFFDF9] text-[#4A4E69] border-[#FFE3DE]'
+                  ? 'bg-[#2B2D42] text-white border-[#2B2D42]'
+                  : 'bg-white text-[#4A4E69] border-[#E2E8F0]'
               }`}
             >
               {t.label}
@@ -478,59 +478,53 @@ export const DailyAlbumSnsTab: React.FC<DailyAlbumSnsTabProps> = ({
         </div>
       </div>
 
-      {/* 2. MODE SWITCHER: 9:16 SHORTS VIDEO vs 4-CUT ALBUM */}
-      <div className="grid grid-cols-2 gap-1.5 bg-white p-1.5 rounded-[16px] border border-[#FFE3DE]">
+      {/* 2. MODE SWITCHER */}
+      <div className="grid grid-cols-2 gap-1.5 bg-white p-1.5 rounded-[16px] border border-[#BFE0FF]">
         <button
           type="button"
           onClick={() => setStudioMode('shorts')}
-          className={`min-h-[44px] rounded-[12px] text-xs font-extrabold flex items-center justify-center gap-1.5 transition cursor-pointer ${
+          className={`min-h-[42px] rounded-[12px] text-xs font-extrabold flex items-center justify-center gap-1.5 transition cursor-pointer ${
             studioMode === 'shorts'
-              ? 'bg-[#FF7E67] text-white shadow-xs'
+              ? 'bg-[#FF8A3D] text-white shadow-xs'
               : 'text-[#4A4E69]'
           }`}
         >
           <Film className="w-4 h-4" />
-          <span>유튜브 쇼츠·릴스 영상</span>
+          <span>유튜브 쇼츠 영상</span>
         </button>
         <button
           type="button"
           onClick={() => setStudioMode('album')}
-          className={`min-h-[44px] rounded-[12px] text-xs font-extrabold flex items-center justify-center gap-1.5 transition cursor-pointer ${
+          className={`min-h-[42px] rounded-[12px] text-xs font-extrabold flex items-center justify-center gap-1.5 transition cursor-pointer ${
             studioMode === 'album'
-              ? 'bg-[#FF7E67] text-white shadow-xs'
+              ? 'bg-[#FF6B9D] text-white shadow-xs'
               : 'text-[#4A4E69]'
           }`}
         >
           <ImageIcon className="w-4 h-4" />
-          <span>인스타 4컷 포토앨범</span>
+          <span>인스타 4컷 앨범</span>
         </button>
       </div>
 
-      {/* 3. PREVIEW & ONE-TOUCH MOBILE SHARE / SAVE */}
-      <div className="bg-white rounded-[20px] p-4 border border-[#FFE3DE] space-y-3">
+      {/* 3. PREVIEW & 1-TOUCH SHARE/SAVE */}
+      <div className="bg-white rounded-[20px] p-3.5 border border-[#BFE0FF] space-y-2.5">
         {studioMode === 'shorts' ? (
           <>
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-extrabold text-[#4A4E69]">
-                🎬 9:16 세로형 쇼츠 자동 편집 프리뷰
-              </span>
-              <button
-                type="button"
-                onClick={() => setIsPlayingShorts((p) => !p)}
-                className="text-xs font-extrabold text-[#FF7E67] flex items-center gap-1 cursor-pointer"
-              >
-                <Play className="w-3.5 h-3.5" />
-                <span>{isPlayingShorts ? '일시정지' : '재생'}</span>
-              </button>
-            </div>
-
-            <div className="relative w-full max-w-[235px] aspect-[9/16] mx-auto rounded-[20px] overflow-hidden shadow-md border-2 border-[#FFC5BB] bg-[#2B2D42]">
+            <div className="relative w-full max-w-[220px] aspect-[9/16] mx-auto rounded-[20px] overflow-hidden shadow-md border-2 border-[#FFD5B5] bg-[#2B2D42]">
               <canvas
                 ref={shortsCanvasRef}
                 width={540}
                 height={960}
                 className="w-full h-full object-cover"
               />
+              <button
+                type="button"
+                onClick={() => setIsPlayingShorts((p) => !p)}
+                className="absolute top-2.5 right-2.5 px-2.5 py-1 rounded-full bg-black/50 text-white text-[10px] font-bold flex items-center gap-1 cursor-pointer"
+              >
+                <Play className="w-3 h-3" />
+                <span>{isPlayingShorts ? '정지' : '재생'}</span>
+              </button>
             </div>
 
             <div className="grid grid-cols-2 gap-2">
@@ -538,38 +532,29 @@ export const DailyAlbumSnsTab: React.FC<DailyAlbumSnsTabProps> = ({
                 type="button"
                 onClick={() => handleSaveOrShareShortsVideo(false)}
                 disabled={isRecordingShorts}
-                className="min-h-[48px] px-3 rounded-[14px] bg-[#FF7E67] text-white font-extrabold text-xs shadow-xs flex items-center justify-center gap-1.5 active:scale-95 transition disabled:opacity-60 cursor-pointer"
+                className="min-h-[46px] rounded-[14px] bg-[#FF8A3D] text-white font-extrabold text-xs flex items-center justify-center gap-1.5 active:scale-95 transition cursor-pointer"
               >
-                <Download className="w-4 h-4 shrink-0" />
-                <span>{isRecordingShorts ? '생성 중...' : '쇼츠 영상 저장'}</span>
+                <Download className="w-4 h-4" />
+                <span>{isRecordingShorts ? '생성중...' : '영상 저장'}</span>
               </button>
               <button
                 type="button"
                 onClick={() => handleSaveOrShareShortsVideo(true)}
                 disabled={isRecordingShorts}
-                className="min-h-[48px] px-3 rounded-[14px] bg-[#4A4E69] text-white font-extrabold text-xs shadow-xs flex items-center justify-center gap-1.5 active:scale-95 transition disabled:opacity-60 cursor-pointer"
+                className="min-h-[46px] rounded-[14px] bg-[#4A90E2] text-white font-extrabold text-xs flex items-center justify-center gap-1.5 active:scale-95 transition cursor-pointer"
               >
-                <Share2 className="w-4 h-4 text-[#FFD166] shrink-0" />
-                <span>유튜브·SNS 공유</span>
+                <Share2 className="w-4 h-4" />
+                <span>SNS 공유</span>
               </button>
             </div>
           </>
         ) : (
           <>
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-extrabold text-[#4A4E69]">
-                📕 인스타그램 · 카톡 4컷 매거진 앨범
-              </span>
-              <span className="text-[11px] font-bold text-[#FF7E67]">
-                고화질 PNG
-              </span>
-            </div>
-
             {albumPreviewUrl && (
-              <div className="w-full max-w-[270px] mx-auto rounded-[18px] overflow-hidden shadow-md border border-[#FFE3DE]">
+              <div className="w-full max-w-[250px] mx-auto rounded-[18px] overflow-hidden shadow-md border border-[#FFC4DC]">
                 <img
                   src={albumPreviewUrl}
-                  alt="4컷 앨범 미리보기"
+                  alt="4컷 앨범"
                   className="w-full h-auto object-contain"
                 />
               </div>
@@ -579,26 +564,26 @@ export const DailyAlbumSnsTab: React.FC<DailyAlbumSnsTabProps> = ({
               <button
                 type="button"
                 onClick={() => handleSaveOrShareAlbum(false)}
-                className="min-h-[48px] px-3 rounded-[14px] bg-[#FF7E67] text-white font-extrabold text-xs shadow-xs flex items-center justify-center gap-1.5 active:scale-95 transition cursor-pointer"
+                className="min-h-[46px] rounded-[14px] bg-[#FF6B9D] text-white font-extrabold text-xs flex items-center justify-center gap-1.5 active:scale-95 transition cursor-pointer"
               >
-                <Download className="w-4 h-4 shrink-0" />
-                <span>4컷 앨범 저장</span>
+                <Download className="w-4 h-4" />
+                <span>앨범 저장</span>
               </button>
               <button
                 type="button"
                 onClick={() => handleSaveOrShareAlbum(true)}
-                className="min-h-[48px] px-3 rounded-[14px] bg-[#4A4E69] text-white font-extrabold text-xs shadow-xs flex items-center justify-center gap-1.5 active:scale-95 transition cursor-pointer"
+                className="min-h-[46px] rounded-[14px] bg-[#4A90E2] text-white font-extrabold text-xs flex items-center justify-center gap-1.5 active:scale-95 transition cursor-pointer"
               >
-                <Share2 className="w-4 h-4 text-[#FFD166] shrink-0" />
-                <span>인스타·카톡 공유</span>
+                <Share2 className="w-4 h-4" />
+                <span>카톡·SNS 공유</span>
               </button>
             </div>
           </>
         )}
 
         {toastMsg && (
-          <div className="p-2.5 rounded-[12px] bg-[#E8F6F5] text-[#2F6F6B] text-xs font-extrabold flex items-center justify-center gap-1.5">
-            <CheckCircle2 className="w-4 h-4 shrink-0" />
+          <div className="p-2 rounded-[10px] bg-[#EEF6FF] text-[#4A90E2] text-xs font-extrabold flex items-center justify-center gap-1">
+            <CheckCircle2 className="w-4 h-4" />
             <span>{toastMsg}</span>
           </div>
         )}
@@ -606,10 +591,10 @@ export const DailyAlbumSnsTab: React.FC<DailyAlbumSnsTabProps> = ({
         <button
           type="button"
           onClick={handleCopySnsTags}
-          className="w-full min-h-[44px] rounded-[14px] bg-[#FFF2EF] text-[#FF7E67] font-extrabold text-xs border border-[#FFC5BB] flex items-center justify-center gap-1.5 active:scale-98 transition cursor-pointer"
+          className="w-full min-h-[40px] rounded-[12px] bg-[#F8FAFC] text-[#4A90E2] font-extrabold text-xs border border-[#BFE0FF] flex items-center justify-center gap-1.5 active:scale-98 cursor-pointer"
         >
           <Copy className="w-3.5 h-3.5" />
-          <span>유튜브·인스타 제목 & 해시태그 원터치 복사</span>
+          <span>해시태그 복사</span>
         </button>
       </div>
     </div>
