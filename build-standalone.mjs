@@ -7,22 +7,23 @@ const devTemplate = `<!doctype html>
 <html lang="ko">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    <meta name="theme-color" content="#FFFDF9" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="mobile-web-app-capable" content="yes" />
     <title>펫타임 (PetTime) - AI 반려동물 미래 타임머신</title>
     <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css" />
   </head>
-  <body class="bg-[#FFFDF9] text-[#4A4E69] antialiased">
+  <body class="bg-[#F7F3EE] text-[#4A4E69] antialiased">
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>`;
 
 async function buildStandalone() {
-  // 1. Write dev index.html so Vite compiles all latest Tailwind CSS classes
   fs.writeFileSync('index.html', devTemplate, 'utf8');
   execSync('.\\node_modules\\.bin\\vite.cmd build', { stdio: 'inherit' });
 
-  // 2. Bundle IIFE JS for standalone file:// execution
   await esbuild.build({
     entryPoints: ['src/main.tsx'],
     bundle: true,
@@ -68,7 +69,10 @@ async function buildStandalone() {
 <html lang="ko">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    <meta name="theme-color" content="#FFFDF9" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="mobile-web-app-capable" content="yes" />
     <title>펫타임 (PetTime) - AI 반려동물 미래 타임머신</title>
     <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css" />
     <style>${combinedCss}</style>
@@ -81,7 +85,7 @@ async function buildStandalone() {
 
   fs.writeFileSync('index.html', fullHtml, 'utf8');
   fs.writeFileSync(path.join('dist', 'index.html'), fullHtml, 'utf8');
-  console.log('Successfully generated fresh mobile-optimized index.html!');
+  console.log('Successfully generated fresh smartphone-optimized index.html!');
 }
 
 buildStandalone().catch((err) => {

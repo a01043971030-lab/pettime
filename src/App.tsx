@@ -7,7 +7,6 @@ import {
   Calendar,
   Clock,
   Baby,
-  Stethoscope,
   Share2,
   RotateCcw,
   ShieldAlert,
@@ -38,7 +37,7 @@ import { OffspringSimulatorTab } from './components/OffspringSimulatorTab';
 import { AutoCareSystemTab, DailyCareMediaItem } from './components/AutoCareSystemTab';
 import { DailyAlbumSnsTab } from './components/DailyAlbumSnsTab';
 
-type MobileTab = 'timeline' | 'offspring' | 'autocare' | 'sns' | 'profile' | 'health';
+type MobileTab = 'autocare' | 'sns' | 'timeline' | 'offspring' | 'longevity_health';
 
 const SPECIES_OPTIONS: (PetSpeciesCategory | '자동 분석')[] = [
   '자동 분석',
@@ -80,6 +79,7 @@ export function App() {
   const [generatedImages, setGeneratedImages] = useState<GeneratedPetImages | null>(null);
 
   const [activeTab, setActiveTab] = useState<MobileTab>('autocare');
+  const [healthSubTab, setHealthSubTab] = useState<'lifespan' | 'roadmap'>('lifespan');
   const [selectedStageIndex, setSelectedStageIndex] = useState<number>(4);
   const [customYearOffset, setCustomYearOffset] = useState<number>(8);
   const [customYearImageUrl, setCustomYearImageUrl] = useState<string>('');
@@ -90,9 +90,7 @@ export function App() {
     2: false,
   });
 
-  // Daily Care & SNS Shorts Media Log
   const [dailyLogs, setDailyLogs] = useState<DailyCareMediaItem[]>([]);
-
   const [isResultCardOpen, setIsResultCardOpen] = useState<boolean>(false);
   const [showInputForm, setShowInputForm] = useState<boolean>(true);
 
@@ -159,7 +157,6 @@ export function App() {
       setAnalysisResult(result);
       setGeneratedImages(images);
 
-      // Initialize Daily Logs with today's checkup & milestone snapshots so SNS Shorts works immediately
       const today = new Date();
       const dateStr = `${today.getMonth() + 1}월 ${today.getDate()}일`;
       setDailyLogs([
@@ -292,10 +289,11 @@ export function App() {
 
   return (
     <div className="min-h-screen bg-[#F7F3EE] text-[#4A4E69] flex justify-center">
-      <div className="w-full max-w-[460px] min-h-screen bg-[#FFFDF9] shadow-[0_0_40px_rgba(74,78,105,0.08)] flex flex-col justify-between pb-24">
+      {/* Smartphone Full-Viewport Shell */}
+      <div className="w-full max-w-[440px] min-h-screen bg-[#FFFDF9] shadow-[0_0_40px_rgba(74,78,105,0.08)] flex flex-col justify-between pb-24">
         <div>
-          {/* Compact Mobile Header */}
-          <header className="sticky top-0 z-30 bg-[#FFFDF9]/95 backdrop-blur-md border-b border-[#FFE3DE] px-4 py-3 flex items-center justify-between">
+          {/* Sticky Top Mobile App Bar */}
+          <header className="sticky top-0 z-30 bg-[#FFFDF9]/95 backdrop-blur-md border-b border-[#FFE3DE] px-3.5 py-2.5 flex items-center justify-between">
             <div
               onClick={() => {
                 if (analysisResult) setShowInputForm(false);
@@ -315,15 +313,15 @@ export function App() {
                 <button
                   type="button"
                   onClick={() => setShowInputForm(true)}
-                  className="px-2.5 py-1.5 rounded-full bg-[#FFF2EF] text-[#4A4E69] text-xs font-bold flex items-center gap-1 cursor-pointer active:scale-95 transition"
+                  className="min-h-[34px] px-2.5 rounded-full bg-[#FFF2EF] text-[#4A4E69] text-xs font-bold flex items-center gap-1 cursor-pointer active:scale-95 transition"
                 >
                   <RotateCcw className="w-3.5 h-3.5 text-[#FF7E67]" />
-                  <span>처음으로</span>
+                  <span>처음</span>
                 </button>
                 <button
                   type="button"
                   onClick={() => setIsResultCardOpen(true)}
-                  className="px-3 py-1.5 rounded-full bg-[#FF7E67] text-white text-xs font-bold flex items-center gap-1 shadow-xs cursor-pointer active:scale-95 transition"
+                  className="min-h-[34px] px-3 rounded-full bg-[#FF7E67] text-white text-xs font-bold flex items-center gap-1 shadow-xs cursor-pointer active:scale-95 transition"
                 >
                   <Share2 className="w-3.5 h-3.5" />
                   <span>카드저장</span>
@@ -332,7 +330,7 @@ export function App() {
             )}
           </header>
 
-          <main className="px-4 pt-4 space-y-4">
+          <main className="px-3.5 pt-3 space-y-3">
             {/* 1. LOADING SCREEN */}
             {isLoading && (
               <LoadingTimeMachine
@@ -342,37 +340,37 @@ export function App() {
               />
             )}
 
-            {/* 2. MOBILE INPUT SCREEN */}
+            {/* 2. MOBILE ONE-SCREEN INPUT FORM */}
             {!isLoading && (showInputForm || !analysisResult) && (
-              <form onSubmit={handleStartTimeMachine} className="space-y-4">
-                <div className="bg-white rounded-[20px] p-4 shadow-[0_6px_20px_-4px_rgba(74,78,105,0.06)] border border-[#FFE3DE] space-y-4">
+              <form onSubmit={handleStartTimeMachine} className="space-y-3">
+                <div className="bg-white rounded-[20px] p-3.5 shadow-[0_6px_20px_-4px_rgba(74,78,105,0.06)] border border-[#FFE3DE] space-y-3">
                   <div className="flex items-center justify-between">
-                    <h1 className="text-lg font-extrabold text-[#4A4E69]">
+                    <h1 className="text-base font-extrabold text-[#4A4E69]">
                       AI 반려동물 자동케어 & 타임머신
                     </h1>
                     {analysisResult && (
                       <button
                         type="button"
                         onClick={() => setShowInputForm(false)}
-                        className="text-xs font-bold text-[#FF7E67] underline cursor-pointer"
+                        className="text-xs font-extrabold text-[#FF7E67] underline cursor-pointer"
                       >
-                        이전 결과 보기
+                        결과 화면으로 →
                       </button>
                     )}
                   </div>
 
-                  {/* Large Touch-Friendly Photo Box */}
-                  <div className="relative rounded-[20px] overflow-hidden border-2 border-dashed border-[#FFA090] bg-[#FFFDF9] aspect-square w-full max-h-[280px] mx-auto flex flex-col items-center justify-center">
+                  {/* Mobile Touch Photo Box */}
+                  <div className="relative rounded-[18px] overflow-hidden border-2 border-dashed border-[#FFA090] bg-[#FFFDF9] aspect-square w-full max-h-[250px] mx-auto flex flex-col items-center justify-center">
                     <img
                       src={petInput.photoDataUrl}
                       alt="반려동물 사진"
                       className="w-full h-full object-cover"
                     />
-                    <div className="absolute inset-x-0 bottom-0 p-3 bg-gradient-to-t from-[#2B2D42]/85 via-[#2B2D42]/45 to-transparent grid grid-cols-2 gap-2">
+                    <div className="absolute inset-x-0 bottom-0 p-2.5 bg-gradient-to-t from-[#2B2D42]/85 via-[#2B2D42]/45 to-transparent grid grid-cols-2 gap-2">
                       <button
                         type="button"
                         onClick={() => cameraInputRef.current?.click()}
-                        className="py-2.5 rounded-[12px] bg-[#FF7E67] text-white text-xs font-extrabold shadow flex items-center justify-center gap-1.5 active:scale-95 transition cursor-pointer"
+                        className="min-h-[44px] rounded-[12px] bg-[#FF7E67] text-white text-xs font-extrabold shadow flex items-center justify-center gap-1.5 active:scale-95 transition cursor-pointer"
                       >
                         <Camera className="w-4 h-4" />
                         <span>카메라 촬영</span>
@@ -380,7 +378,7 @@ export function App() {
                       <button
                         type="button"
                         onClick={() => fileInputRef.current?.click()}
-                        className="py-2.5 rounded-[12px] bg-white text-[#4A4E69] text-xs font-extrabold shadow flex items-center justify-center gap-1.5 active:scale-95 transition cursor-pointer"
+                        className="min-h-[44px] rounded-[12px] bg-white text-[#4A4E69] text-xs font-extrabold shadow flex items-center justify-center gap-1.5 active:scale-95 transition cursor-pointer"
                       >
                         <Upload className="w-4 h-4 text-[#FF7E67]" />
                         <span>앨범 선택</span>
@@ -404,35 +402,30 @@ export function App() {
                     />
                   </div>
 
-                  {/* Quick 1-Tap Sample Chips */}
-                  <div>
-                    <span className="block text-[11px] font-bold text-[#6C708A] mb-1.5">
-                      샘플로 바로 테스트
-                    </span>
-                    <div className="grid grid-cols-4 gap-1.5">
-                      {SAMPLE_PET_PRESETS.map((preset) => {
-                        const isSelected = selectedPresetId === preset.id;
-                        return (
-                          <button
-                            key={preset.id}
-                            type="button"
-                            onClick={() => handleSelectPreset(preset)}
-                            className={`py-2 px-1 rounded-[12px] text-xs font-bold border text-center transition cursor-pointer ${
-                              isSelected
-                                ? 'bg-[#FF7E67] text-white border-[#FF7E67]'
-                                : 'bg-[#FFFDF9] text-[#4A4E69] border-[#FFE3DE]'
-                            }`}
-                          >
-                            {preset.avatarEmoji} {preset.name}
-                          </button>
-                        );
-                      })}
-                    </div>
+                  {/* 1-Tap Sample Chips */}
+                  <div className="grid grid-cols-4 gap-1.5">
+                    {SAMPLE_PET_PRESETS.map((preset) => {
+                      const isSelected = selectedPresetId === preset.id;
+                      return (
+                        <button
+                          key={preset.id}
+                          type="button"
+                          onClick={() => handleSelectPreset(preset)}
+                          className={`min-h-[38px] px-1 rounded-[12px] text-xs font-extrabold border text-center transition active:scale-95 cursor-pointer ${
+                            isSelected
+                              ? 'bg-[#FF7E67] text-white border-[#FF7E67]'
+                              : 'bg-[#FFFDF9] text-[#4A4E69] border-[#FFE3DE]'
+                          }`}
+                        >
+                          {preset.avatarEmoji} {preset.name}
+                        </button>
+                      );
+                    })}
                   </div>
 
                   {/* Required: Birth Year & Month */}
-                  <div className="p-3.5 rounded-[16px] bg-[#FFF9F0] border border-[#F9E4C8]">
-                    <label className="flex items-center gap-1.5 text-xs font-extrabold text-[#FF7E67] mb-2">
+                  <div className="p-3 rounded-[16px] bg-[#FFF9F0] border border-[#F9E4C8]">
+                    <label className="flex items-center gap-1.5 text-xs font-extrabold text-[#FF7E67] mb-1.5">
                       <Calendar className="w-3.5 h-3.5" />
                       <span>태어난 연도 · 월</span>
                     </label>
@@ -445,7 +438,7 @@ export function App() {
                             birthYear: Number(e.target.value),
                           }))
                         }
-                        className="w-full px-3 py-3 rounded-[12px] bg-white border border-[#FFC5BB] text-sm font-extrabold text-[#4A4E69] focus:outline-none focus:ring-2 focus:ring-[#FF7E67]"
+                        className="w-full min-h-[44px] px-3 rounded-[12px] bg-white border border-[#FFC5BB] text-base font-extrabold text-[#4A4E69] focus:outline-none focus:ring-2 focus:ring-[#FF7E67]"
                       >
                         {BIRTH_YEARS.map((yr) => (
                           <option key={yr} value={yr}>
@@ -461,7 +454,7 @@ export function App() {
                             birthMonth: Number(e.target.value),
                           }))
                         }
-                        className="w-full px-3 py-3 rounded-[12px] bg-white border border-[#FFC5BB] text-sm font-extrabold text-[#4A4E69] focus:outline-none focus:ring-2 focus:ring-[#FF7E67]"
+                        className="w-full min-h-[44px] px-3 rounded-[12px] bg-white border border-[#FFC5BB] text-base font-extrabold text-[#4A4E69] focus:outline-none focus:ring-2 focus:ring-[#FF7E67]"
                       >
                         {BIRTH_MONTHS.map((m) => (
                           <option key={m} value={m}>
@@ -472,11 +465,11 @@ export function App() {
                     </div>
                   </div>
 
-                  {/* Compact Optional Info Row */}
-                  <div className="grid grid-cols-3 gap-2">
+                  {/* Optional Info Row */}
+                  <div className="grid grid-cols-3 gap-1.5">
                     <div>
                       <label className="block text-[11px] font-bold text-[#6C708A] mb-1">
-                        이름 (선택)
+                        이름
                       </label>
                       <input
                         type="text"
@@ -485,7 +478,7 @@ export function App() {
                           setPetInput((prev) => ({ ...prev, name: e.target.value }))
                         }
                         placeholder="보리"
-                        className="w-full px-2.5 py-2.5 rounded-[12px] bg-[#FFFDF9] border border-[#E8D8C8] text-xs font-bold text-[#4A4E69] focus:outline-none focus:ring-2 focus:ring-[#FF7E67]"
+                        className="w-full min-h-[42px] px-2.5 rounded-[12px] bg-[#FFFDF9] border border-[#E8D8C8] text-sm font-bold text-[#4A4E69] focus:outline-none focus:ring-2 focus:ring-[#FF7E67]"
                       />
                     </div>
                     <div>
@@ -500,7 +493,7 @@ export function App() {
                             speciesHint: e.target.value as PetSpeciesCategory | '자동 분석',
                           }))
                         }
-                        className="w-full px-2 py-2.5 rounded-[12px] bg-[#FFFDF9] border border-[#E8D8C8] text-xs font-bold text-[#4A4E69] focus:outline-none focus:ring-2 focus:ring-[#FF7E67]"
+                        className="w-full min-h-[42px] px-2 rounded-[12px] bg-[#FFFDF9] border border-[#E8D8C8] text-sm font-bold text-[#4A4E69] focus:outline-none focus:ring-2 focus:ring-[#FF7E67]"
                       >
                         {SPECIES_OPTIONS.map((sp) => (
                           <option key={sp} value={sp}>
@@ -511,7 +504,7 @@ export function App() {
                     </div>
                     <div>
                       <label className="block text-[11px] font-bold text-[#6C708A] mb-1">
-                        성별 (선택)
+                        성별
                       </label>
                       <select
                         value={petInput.gender}
@@ -521,7 +514,7 @@ export function App() {
                             gender: e.target.value as PetInputInfo['gender'],
                           }))
                         }
-                        className="w-full px-2 py-2.5 rounded-[12px] bg-[#FFFDF9] border border-[#E8D8C8] text-xs font-bold text-[#4A4E69] focus:outline-none focus:ring-2 focus:ring-[#FF7E67]"
+                        className="w-full min-h-[42px] px-2 rounded-[12px] bg-[#FFFDF9] border border-[#E8D8C8] text-sm font-bold text-[#4A4E69] focus:outline-none focus:ring-2 focus:ring-[#FF7E67]"
                       >
                         <option value="선택 안 함">미선택</option>
                         <option value="여아">여아 ♀</option>
@@ -534,10 +527,10 @@ export function App() {
                   {/* Start CTA Button */}
                   <button
                     type="submit"
-                    className="w-full py-4 rounded-[18px] bg-[#FF7E67] hover:bg-[#F5644A] text-white font-extrabold text-base shadow-[0_8px_20px_-4px_rgba(255,126,103,0.5)] flex items-center justify-center gap-2 active:scale-[0.98] transition cursor-pointer"
+                    className="w-full min-h-[54px] rounded-[16px] bg-[#FF7E67] hover:bg-[#F5644A] text-white font-extrabold text-base shadow-[0_8px_20px_-4px_rgba(255,126,103,0.5)] flex items-center justify-center gap-2 active:scale-[0.98] transition cursor-pointer"
                   >
                     <Sparkles className="w-5 h-5" />
-                    <span>AI 자동 관리 & 미래 타임머신 시작하기</span>
+                    <span>AI 자동케어 & 타임머신 시작하기</span>
                   </button>
                 </div>
               </form>
@@ -545,32 +538,30 @@ export function App() {
 
             {/* 3. MOBILE RESULT DASHBOARD */}
             {!isLoading && !showInputForm && analysisResult && generatedImages && currentSelectedStage && (
-              <div className="space-y-4">
-                {/* Compact Pet Summary Header Card */}
-                <div className="bg-white rounded-[20px] p-3.5 border border-[#FFE3DE] shadow-xs flex items-center gap-3">
+              <div className="space-y-3">
+                {/* Compact Pet Summary Bar */}
+                <div className="bg-white rounded-[18px] p-3 border border-[#FFE3DE] shadow-xs flex items-center gap-3">
                   <img
                     src={generatedImages.original}
                     alt={analysisResult.petName}
-                    className="w-14 h-14 rounded-[14px] object-cover border border-[#FFC5BB] shrink-0"
+                    className="w-12 h-12 rounded-[12px] object-cover border border-[#FFC5BB] shrink-0"
                   />
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-1.5">
-                      <span className="font-extrabold text-base text-[#4A4E69] truncate">
+                      <span className="font-extrabold text-sm text-[#4A4E69] truncate">
                         {analysisResult.petName}
                       </span>
-                      <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-[#FFF2EF] text-[#FF7E67] shrink-0">
+                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#FFF2EF] text-[#FF7E67] shrink-0">
                         {analysisResult.estimatedBreed}
                       </span>
                     </div>
-                    <p className="text-xs text-[#6C708A] font-medium mt-0.5">
+                    <p className="text-[11px] text-[#6C708A] font-medium mt-0.5">
                       현재 {analysisResult.currentAgeLabel} · {analysisResult.humanAgeEquivalent}
                     </p>
                   </div>
                 </div>
 
-                {/* =========================================================
-                    TAB: 자동케어 (영양제·미용·예방접종·영양상태·임신상태 정밀 관리)
-                ========================================================= */}
+                {/* TAB 1: 자동케어 (영양·임신·영양제·미용·접종 1-Screen) */}
                 {activeTab === 'autocare' && (
                   <AutoCareSystemTab
                     analysisResult={analysisResult}
@@ -584,9 +575,7 @@ export function App() {
                   />
                 )}
 
-                {/* =========================================================
-                    TAB: SNS쇼츠 (그날그날 사진·영상 원터치 앨범 & 유튜브 쇼츠)
-                ========================================================= */}
+                {/* TAB 2: SNS쇼츠 (원터치 유튜브 쇼츠 & 4컷 앨범) */}
                 {activeTab === 'sns' && (
                   <DailyAlbumSnsTab
                     analysisResult={analysisResult}
@@ -595,11 +584,9 @@ export function App() {
                   />
                 )}
 
-                {/* =========================================================
-                    TAB: 미래모습 (1년 단위 성장·노화 타임라인 & 비교 슬라이더)
-                ========================================================= */}
+                {/* TAB 3: 미래모습 (1년 단위 성장·노화 슬라이더) */}
                 {activeTab === 'timeline' && (
-                  <div className="bg-white rounded-[20px] p-4 border border-[#FFE3DE] space-y-4">
+                  <div className="bg-white rounded-[20px] p-3.5 border border-[#FFE3DE] space-y-3">
                     <div className="grid grid-cols-3 gap-1.5">
                       {analysisResult.timelineStages.map((stage, idx) => {
                         const isSelected =
@@ -609,7 +596,7 @@ export function App() {
                             key={stage.id}
                             type="button"
                             onClick={() => handleSelectStageMilestone(idx)}
-                            className={`py-2 px-2 rounded-[12px] text-center border text-xs font-extrabold transition cursor-pointer ${
+                            className={`min-h-[44px] py-1.5 px-1.5 rounded-[12px] text-center border text-xs font-extrabold transition active:scale-95 cursor-pointer ${
                               isSelected
                                 ? 'bg-[#FF7E67] text-white border-[#FF7E67]'
                                 : 'bg-[#FFFDF9] text-[#4A4E69] border-[#FFE3DE]'
@@ -659,7 +646,7 @@ export function App() {
                           );
                           setSelectedStageIndex(nearestIdx);
                         }}
-                        className="w-full accent-[#FF7E67] h-2 bg-[#FFE3DE] rounded-lg cursor-pointer"
+                        className="w-full accent-[#FF7E67] h-2.5 bg-[#FFE3DE] rounded-lg cursor-pointer"
                       />
                     </div>
 
@@ -676,7 +663,7 @@ export function App() {
                       }
                     />
 
-                    <div className="p-3.5 rounded-[16px] bg-[#FFFDF9] border border-[#F3E3D3] space-y-1.5">
+                    <div className="p-3 rounded-[14px] bg-[#FFFDF9] border border-[#F3E3D3] space-y-1">
                       <div className="flex items-center justify-between text-xs font-bold">
                         <span className="text-[#FF7E67]">
                           {exactSliderYear}년 ({exactPetAgeText})
@@ -687,21 +674,10 @@ export function App() {
                         {currentSelectedStage.physicalChangeDesc}
                       </p>
                     </div>
-
-                    <div className="p-3.5 rounded-[16px] bg-[#FFF2EF] border border-[#FFC5BB]">
-                      <div className="text-[11px] font-extrabold text-[#FF7E67] mb-1">
-                        💌 {exactSliderYear}년의 {analysisResult.petName} 한마디
-                      </div>
-                      <p className="text-xs font-bold text-[#4A4E69] leading-relaxed">
-                        “{currentSelectedStage.petDiaryQuote}”
-                      </p>
-                    </div>
                   </div>
                 )}
 
-                {/* =========================================================
-                    TAB: 2세예측 (상대 펫 업로드 + 사진 5장 + 3초 영상!)
-                ========================================================= */}
+                {/* TAB 4: 2세예측 (상대 펫 + 3초 영상 & 5장 사진) */}
                 {activeTab === 'offspring' && (
                   <OffspringSimulatorTab
                     analysisResult={analysisResult}
@@ -709,169 +685,155 @@ export function App() {
                   />
                 )}
 
-                {/* =========================================================
-                    TAB: 수명예측 & 프로필
-                ========================================================= */}
-                {activeTab === 'profile' && (
-                  <div className="space-y-3.5">
-                    <div className="rounded-[20px] bg-gradient-to-br from-[#FF7E67] to-[#F5644A] text-white p-5 shadow-md space-y-2">
-                      <span className="inline-block text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-white/20">
-                        품종 평균 수명 {analysisResult.lifespanPrediction.breedAverageYears} 기준
-                      </span>
-                      <h2 className="text-xl font-extrabold leading-snug">
-                        “{analysisResult.lifespanPrediction.expectedTogetherYear + activeBonusYears}년까지 건강하게 함께할 수 있어요!”
-                      </h2>
-                      <p className="text-xs text-[#FFF2EF] leading-relaxed">
-                        꾸준한 관리 시 평균보다 <strong>+{activeBonusYears}년</strong> 더 오래 행복하게 함께할 수 있어요.
-                      </p>
+                {/* TAB 5: 수명·건강 (Sub-Tab: 기대수명 예측 vs 연도별 건강로드맵) */}
+                {activeTab === 'longevity_health' && (
+                  <div className="space-y-3">
+                    <div className="grid grid-cols-2 gap-1.5 bg-white p-1.5 rounded-[16px] border border-[#FFE3DE]">
+                      <button
+                        type="button"
+                        onClick={() => setHealthSubTab('lifespan')}
+                        className={`min-h-[42px] rounded-[12px] text-xs font-extrabold transition cursor-pointer ${
+                          healthSubTab === 'lifespan'
+                            ? 'bg-[#FF7E67] text-white shadow-xs'
+                            : 'text-[#4A4E69]'
+                        }`}
+                      >
+                        💝 함께할 연도 (수명)
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setHealthSubTab('roadmap')}
+                        className={`min-h-[42px] rounded-[12px] text-xs font-extrabold transition cursor-pointer ${
+                          healthSubTab === 'roadmap'
+                            ? 'bg-[#FF7E67] text-white shadow-xs'
+                            : 'text-[#4A4E69]'
+                        }`}
+                      >
+                        🩺 연도별 건강 주의보
+                      </button>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-2.5">
-                      <div className="bg-white p-3.5 rounded-[16px] border border-[#FFE3DE]">
-                        <span className="text-[11px] text-[#6C708A] font-semibold block">추정 품종</span>
-                        <span className="text-sm font-extrabold text-[#4A4E69] mt-0.5 block">
-                          {analysisResult.estimatedBreed}
-                        </span>
-                      </div>
-                      <div className="bg-white p-3.5 rounded-[16px] border border-[#FFE3DE]">
-                        <span className="text-[11px] text-[#6C708A] font-semibold block">현재 나이</span>
-                        <span className="text-sm font-extrabold text-[#FF7E67] mt-0.5 block">
-                          {analysisResult.currentAgeLabel}
-                        </span>
-                      </div>
-                      <div className="bg-white p-3.5 rounded-[16px] border border-[#FFE3DE]">
-                        <span className="text-[11px] text-[#6C708A] font-semibold block">사람 나이 환산</span>
-                        <span className="text-sm font-extrabold text-[#4A4E69] mt-0.5 block">
-                          {analysisResult.humanAgeEquivalent}
-                        </span>
-                      </div>
-                      <div className="bg-white p-3.5 rounded-[16px] border border-[#FFE3DE]">
-                        <span className="text-[11px] text-[#6C708A] font-semibold block">남은 행복 시간</span>
-                        <span className="text-sm font-extrabold text-[#2F6F6B] mt-0.5 block">
-                          약 {analysisResult.lifespanPrediction.remainingHappyYears + activeBonusYears}년 이상
-                        </span>
-                      </div>
-                    </div>
-
-                    <div className="bg-white rounded-[20px] p-4 border border-[#FFE3DE] space-y-2.5">
-                      <h3 className="text-xs font-extrabold text-[#4A4E69]">
-                        ✅ 수명을 늘리는 3가지 실천 (터치 시 예상 연도 반영)
-                      </h3>
-                      {analysisResult.lifespanPrediction.keyLongevityFactors.map((factor, idx) => {
-                        const checked = Boolean(checkedLongevityTips[idx]);
-                        return (
-                          <label
-                            key={idx}
-                            className="flex items-center gap-2.5 p-3 rounded-[14px] bg-[#FFFDF9] border border-[#F3E3D3] cursor-pointer text-xs font-bold text-[#4A4E69]"
-                          >
-                            <input
-                              type="checkbox"
-                              checked={checked}
-                              onChange={() =>
-                                setCheckedLongevityTips((prev) => ({
-                                  ...prev,
-                                  [idx]: !prev[idx],
-                                }))
-                              }
-                              className="w-4 h-4 accent-[#FF7E67]"
-                            />
-                            <span>{factor}</span>
-                          </label>
-                        );
-                      })}
-                    </div>
-                  </div>
-                )}
-
-                {/* =========================================================
-                    TAB: 연도별 건강 주의보 & 맞춤 미용 로드맵
-                ========================================================= */}
-                {activeTab === 'health' && (
-                  <div className="bg-white rounded-[20px] p-4 border border-[#FFE3DE] space-y-4">
-                    <h2 className="text-base font-extrabold text-[#4A4E69]">
-                      연도별 아플 곳 주의보 & 검진 로드맵
-                    </h2>
-
-                    <div className="flex gap-1.5 overflow-x-auto pb-1 custom-scrollbar">
-                      {analysisResult.healthRoadmap.map((item, idx) => {
-                        const active = selectedHealthIdx === idx;
-                        return (
-                          <button
-                            key={idx}
-                            type="button"
-                            onClick={() => setSelectedHealthIdx(idx)}
-                            className={`shrink-0 px-3 py-2 rounded-[12px] text-xs font-extrabold border transition cursor-pointer ${
-                              active
-                                ? 'bg-[#FF7E67] text-white border-[#FF7E67]'
-                                : 'bg-[#FFFDF9] text-[#4A4E69] border-[#FFE3DE]'
-                            }`}
-                          >
-                            <div>{item.year}년</div>
-                            <div className={`text-[10px] ${active ? 'text-[#FFF2EF]' : 'text-[#6C708A]'}`}>
-                              {item.petAge}
-                            </div>
-                          </button>
-                        );
-                      })}
-                    </div>
-
-                    {analysisResult.healthRoadmap[selectedHealthIdx] && (() => {
-                      const h = analysisResult.healthRoadmap[selectedHealthIdx];
-                      return (
-                        <div className="space-y-3">
-                          <div className="p-3.5 rounded-[16px] bg-[#FFF2EF] border border-[#FFC5BB]">
-                            <div className="flex items-center justify-between mb-2">
-                              <span className="text-xs font-extrabold text-[#4A4E69] flex items-center gap-1">
-                                <ShieldAlert className="w-4 h-4 text-[#FF7E67]" />
-                                <span>{h.year}년 ({h.petAge}) 집중 주의 부위</span>
-                              </span>
-                              <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-white text-[#FF7E67]">
-                                {h.riskLevel}
-                              </span>
-                            </div>
-                            <div className="flex flex-wrap gap-1.5">
-                              {h.vulnerableParts.map((part, i) => (
-                                <span
-                                  key={i}
-                                  className="px-2.5 py-1 rounded-full bg-white text-[#FF7E67] text-xs font-extrabold border border-[#FFC5BB]"
-                                >
-                                  {part}
-                                </span>
-                              ))}
-                            </div>
-                          </div>
-
-                          <div className="p-3.5 rounded-[16px] bg-[#FFFDF9] border border-[#F3E3D3] space-y-1.5">
-                            <div className="text-xs font-extrabold text-[#4A4E69]">
-                              ⚠️ 주의 질환
-                            </div>
-                            {h.geneticAndAgeRisks.map((r, i) => (
-                              <p key={i} className="text-xs text-[#6C708A] leading-relaxed">
-                                • {r}
-                              </p>
-                            ))}
-                          </div>
-
-                          <div className="p-3.5 rounded-[16px] bg-[#FFFDF9] border border-[#F3E3D3] space-y-1.5">
-                            <div className="text-xs font-extrabold text-[#2F6F6B]">
-                              🩺 필수 건강검진 항목
-                            </div>
-                            {h.essentialCheckups.map((c, i) => (
-                              <p key={i} className="text-xs text-[#4A4E69] leading-relaxed">
-                                • {c}
-                              </p>
-                            ))}
-                          </div>
-
-                          <div className="p-3.5 rounded-[16px] bg-[#FFF9F0] border border-[#F9E4C8] text-xs text-[#4A4E69] leading-relaxed">
-                            <strong className="text-[#FF7E67] block mb-0.5">
-                              🥗 맞춤 사료·영양제 팁
-                            </strong>
-                            {h.nutritionAndCareGuide}
-                          </div>
+                    {healthSubTab === 'lifespan' ? (
+                      <div className="space-y-3">
+                        <div className="rounded-[20px] bg-gradient-to-br from-[#FF7E67] to-[#F5644A] text-white p-4 shadow-md space-y-1.5">
+                          <span className="inline-block text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-white/20">
+                            품종 평균 수명 {analysisResult.lifespanPrediction.breedAverageYears}
+                          </span>
+                          <h2 className="text-lg font-extrabold leading-snug">
+                            “{analysisResult.lifespanPrediction.expectedTogetherYear + activeBonusYears}년까지 건강하게 함께할 수 있어요!”
+                          </h2>
+                          <p className="text-xs text-[#FFF2EF]">
+                            맞춤 케어 실천 시 평균보다 <strong>+{activeBonusYears}년</strong> 더 함께할 수 있어요.
+                          </p>
                         </div>
-                      );
-                    })()}
+
+                        <div className="bg-white rounded-[20px] p-3.5 border border-[#FFE3DE] space-y-2">
+                          <h3 className="text-xs font-extrabold text-[#4A4E69]">
+                            ✅ 수명 늘리는 3가지 실천 (터치 시 연도 반영)
+                          </h3>
+                          {analysisResult.lifespanPrediction.keyLongevityFactors.map((factor, idx) => {
+                            const checked = Boolean(checkedLongevityTips[idx]);
+                            return (
+                              <button
+                                key={idx}
+                                type="button"
+                                onClick={() =>
+                                  setCheckedLongevityTips((prev) => ({
+                                    ...prev,
+                                    [idx]: !prev[idx],
+                                  }))
+                                }
+                                className={`w-full min-h-[48px] flex items-center gap-2.5 p-3 rounded-[14px] border text-left text-xs font-bold transition active:scale-98 cursor-pointer ${
+                                  checked
+                                    ? 'bg-[#FFF2EF]/70 border-[#FFC5BB] text-[#4A4E69]'
+                                    : 'bg-[#FFFDF9] border-[#F3E3D3] text-[#6C708A]'
+                                }`}
+                              >
+                                <input
+                                  type="checkbox"
+                                  checked={checked}
+                                  readOnly
+                                  className="w-4 h-4 accent-[#FF7E67] pointer-events-none"
+                                />
+                                <span>{factor}</span>
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="bg-white rounded-[20px] p-3.5 border border-[#FFE3DE] space-y-3">
+                        <div className="grid grid-cols-5 gap-1">
+                          {analysisResult.healthRoadmap.map((item, idx) => {
+                            const active = selectedHealthIdx === idx;
+                            return (
+                              <button
+                                key={idx}
+                                type="button"
+                                onClick={() => setSelectedHealthIdx(idx)}
+                                className={`min-h-[44px] rounded-[12px] text-xs font-extrabold border transition cursor-pointer ${
+                                  active
+                                    ? 'bg-[#FF7E67] text-white border-[#FF7E67]'
+                                    : 'bg-[#FFFDF9] text-[#4A4E69] border-[#FFE3DE]'
+                                }`}
+                              >
+                                <div>{item.year}년</div>
+                                <div className={`text-[10px] ${active ? 'text-[#FFF2EF]' : 'text-[#6C708A]'}`}>
+                                  {item.petAge}
+                                </div>
+                              </button>
+                            );
+                          })}
+                        </div>
+
+                        {analysisResult.healthRoadmap[selectedHealthIdx] && (() => {
+                          const h = analysisResult.healthRoadmap[selectedHealthIdx];
+                          return (
+                            <div className="space-y-2.5">
+                              <div className="p-3 rounded-[14px] bg-[#FFF2EF] border border-[#FFC5BB]">
+                                <div className="flex items-center justify-between mb-1.5">
+                                  <span className="text-xs font-extrabold text-[#4A4E69] flex items-center gap-1">
+                                    <ShieldAlert className="w-4 h-4 text-[#FF7E67]" />
+                                    <span>{h.year}년 ({h.petAge}) 취약 부위</span>
+                                  </span>
+                                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-white text-[#FF7E67]">
+                                    {h.riskLevel}
+                                  </span>
+                                </div>
+                                <div className="flex flex-wrap gap-1.5">
+                                  {h.vulnerableParts.map((part, i) => (
+                                    <span
+                                      key={i}
+                                      className="px-2.5 py-0.5 rounded-full bg-white text-[#FF7E67] text-xs font-extrabold border border-[#FFC5BB]"
+                                    >
+                                      {part}
+                                    </span>
+                                  ))}
+                                </div>
+                              </div>
+
+                              <div className="p-3 rounded-[14px] bg-[#FFFDF9] border border-[#F3E3D3] space-y-1">
+                                <div className="text-xs font-extrabold text-[#2F6F6B]">
+                                  🩺 필수 건강검진
+                                </div>
+                                {h.essentialCheckups.map((c, i) => (
+                                  <p key={i} className="text-xs text-[#4A4E69] leading-relaxed">
+                                    • {c}
+                                  </p>
+                                ))}
+                              </div>
+
+                              <div className="p-3 rounded-[14px] bg-[#FFF9F0] border border-[#F9E4C8] text-xs text-[#4A4E69] leading-relaxed">
+                                <strong className="text-[#FF7E67] block mb-0.5">
+                                  🥗 맞춤 영양 가이드
+                                </strong>
+                                {h.nutritionAndCareGuide}
+                              </div>
+                            </div>
+                          );
+                        })()}
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
@@ -879,16 +841,15 @@ export function App() {
           </main>
         </div>
 
-        {/* Fixed Bottom 6-Tab Mobile Bar */}
+        {/* Fixed Bottom 5-Tab Smartphone Navigation Bar (Safe-Area Aware & Thumb-Friendly) */}
         {!isLoading && !showInputForm && analysisResult && (
-          <nav className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[460px] z-40 bg-white/95 backdrop-blur-md border-t border-[#FFE3DE] px-1.5 py-1.5 grid grid-cols-6 gap-1 shadow-[0_-4px_20px_rgba(74,78,105,0.08)]">
+          <nav className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[440px] z-40 bg-white/95 backdrop-blur-md border-t border-[#FFE3DE] px-2 pt-1.5 pb-[max(0.5rem,env(safe-area-inset-bottom))] grid grid-cols-5 gap-1.5 shadow-[0_-4px_20px_rgba(74,78,105,0.08)]">
             {[
               { id: 'autocare', label: '자동케어', icon: HeartPulse },
               { id: 'sns', label: 'SNS쇼츠', icon: Film },
               { id: 'timeline', label: '미래모습', icon: Clock },
               { id: 'offspring', label: '2세예측', icon: Baby },
-              { id: 'profile', label: '수명예측', icon: Heart },
-              { id: 'health', label: '건강체크', icon: Stethoscope },
+              { id: 'longevity_health', label: '수명·건강', icon: Heart },
             ].map((tab) => {
               const IconComp = tab.icon;
               const active = activeTab === tab.id;
@@ -900,14 +861,14 @@ export function App() {
                     setActiveTab(tab.id as MobileTab);
                     window.scrollTo({ top: 0, behavior: 'smooth' });
                   }}
-                  className={`py-2 rounded-[12px] flex flex-col items-center justify-center gap-0.5 transition cursor-pointer ${
+                  className={`min-h-[50px] rounded-[14px] flex flex-col items-center justify-center gap-1 transition active:scale-95 cursor-pointer ${
                     active
                       ? 'bg-[#FFF2EF] text-[#FF7E67] font-extrabold'
-                      : 'text-[#6C708A] font-semibold'
+                      : 'text-[#6C708A] font-bold'
                   }`}
                 >
                   <IconComp className="w-4 h-4" />
-                  <span className="text-[10px] tracking-tight">{tab.label}</span>
+                  <span className="text-[11px]">{tab.label}</span>
                 </button>
               );
             })}

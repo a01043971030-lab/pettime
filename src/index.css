@@ -1,17 +1,25 @@
 @import "tailwindcss";
 
 @layer base {
-  body {
-    background-color: #FFFDF9;
+  html, body {
+    background-color: #F7F3EE;
     color: #4A4E69;
     font-family: "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont, system-ui, Roboto, "Noto Sans KR", sans-serif;
     overflow-x: hidden;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+    user-select: none;
+  }
+
+  input, select, textarea, button {
+    font-family: inherit;
+    touch-action: manipulation;
   }
 }
 
 .custom-scrollbar::-webkit-scrollbar {
-  height: 6px;
-  width: 6px;
+  height: 4px;
+  width: 4px;
 }
 
 .custom-scrollbar::-webkit-scrollbar-track {
@@ -24,30 +32,6 @@
   border-radius: 9999px;
 }
 
-.custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: #FF7E67;
-}
-
-@keyframes floatSlow {
-  0%, 100% {
-    transform: translateY(0px) rotate(0deg);
-  }
-  50% {
-    transform: translateY(-6px) rotate(2deg);
-  }
-}
-
-@keyframes pulseSoft {
-  0%, 100% {
-    opacity: 1;
-    transform: scale(1);
-  }
-  50% {
-    opacity: 0.85;
-    transform: scale(0.985);
-  }
-}
-
 @keyframes shimmerBar {
   0% {
     background-position: -200% 0;
@@ -55,14 +39,6 @@
   100% {
     background-position: 200% 0;
   }
-}
-
-.animate-float {
-  animation: floatSlow 3.5s ease-in-out infinite;
-}
-
-.animate-pulse-soft {
-  animation: pulseSoft 2.5s ease-in-out infinite;
 }
 
 .animate-shimmer {
