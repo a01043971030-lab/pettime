@@ -9,12 +9,31 @@ export interface PetInputInfo {
   speciesHint: PetSpeciesCategory | '자동 분석';
   photoDataUrl: string;
   photoMimeType: string;
+  presetId?: string;
+}
+
+export interface PartnerPetInfo {
+  name: string;
+  photoDataUrl: string;
+  isFromVideo: boolean;
+  primaryColorHex: string;
+  secondaryColorHex: string;
+  colorDesc: string;
+}
+
+export interface OffspringPhotoItem {
+  id: string;
+  stepNumber: number;
+  title: string;
+  subtitle: string;
+  poseType: 'newborn' | 'head_tilt' | 'wink_play' | 'grown_baby' | 'family_portrait';
+  imageUrl: string;
 }
 
 export interface TimelineStage {
   id: string;
-  offsetYears: number; // 0, 1, 3, 5, 8, 12
-  label: string; // "현재", "1년 후", "3년 후", "5년 후", "8년 후", "12년 후 (노년기)"
+  offsetYears: number;
+  label: string;
   targetYear: number;
   petAgeText: string;
   humanAgeText: string;
@@ -32,7 +51,7 @@ export interface OffspringPrediction {
   furAndEyeDesc: string;
   personalityTraits: string[];
   cutePointsDesc: string;
-  parentResemblanceScore: number; // e.g., 96%
+  parentResemblanceScore: number;
   imagePromptEn: string;
 }
 
@@ -42,7 +61,7 @@ export interface YearlyHealthRoadmapItem {
   petAge: string;
   humanAge: string;
   riskLevel: '안심 관리' | '집중 케어' | '정밀 검진';
-  vulnerableParts: string[]; // 관절/슬개골, 치아/치주, 신장, 심장, 눈/백내장 등
+  vulnerableParts: string[];
   geneticAndAgeRisks: string[];
   essentialCheckups: string[];
   nutritionAndCareGuide: string;
@@ -103,8 +122,8 @@ export interface PetTimeAnalysisResult {
     expectedTogetherYear: number;
     expectedAgeAtTargetYear: number;
     remainingHappyYears: number;
-    headlineMessage: string; // e.g. "2040년까지 건강하게 함께할 수 있어요!"
-    hopeSubMessage: string; // 관리에 따라 수명이 더 늘어날 수 있다는 희망 메시지
+    headlineMessage: string;
+    hopeSubMessage: string;
     potentialBonusYears: number;
     keyLongevityFactors: string[];
   };
@@ -116,10 +135,11 @@ export interface PetTimeAnalysisResult {
 
 export interface GeneratedPetImages {
   original: string;
-  primeAdult: string; // 성년기 모습
-  senior: string; // 노년기 모습
-  offspring: string; // 2세(새끼) 모습
-  perStageUrls: Record<string, string>; // 각 타임라인 단계별 시뮬레이션 이미지
+  primeAdult: string;
+  senior: string;
+  offspring: string;
+  offspringGallery: OffspringPhotoItem[];
+  perStageUrls: Record<string, string>;
   sourceMode: 'gemini-ai' | 'smart-simulation';
   statusNote?: string;
 }

@@ -493,7 +493,8 @@ export async function generatePetFutureImagesWithGemini(
       'prime',
       3,
       `${analysis.petName} · 전성기 성년 모습`,
-      '윤기 나는 피모 & 활력 절정기'
+      '윤기 나는 피모 & 활력 절정기',
+      input.presetId
     );
   }
   if (!seniorUrl) {
@@ -502,7 +503,8 @@ export async function generatePetFutureImagesWithGemini(
       'senior',
       12,
       `${analysis.petName} · 온화한 노년기`,
-      '입가와 눈가에 내려앉은 하얀 서리 털'
+      '입가와 눈가에 내려앉은 하얀 서리 털',
+      input.presetId
     );
   }
   if (!offspringUrl) {
@@ -511,7 +513,8 @@ export async function generatePetFutureImagesWithGemini(
       'offspring',
       0,
       `미래 2세 "${analysis.offspringPrediction.babyNickname}"`,
-      `부모 외모 유전율 ${analysis.offspringPrediction.parentResemblanceScore}%`
+      `부모 외모 유전율 ${analysis.offspringPrediction.parentResemblanceScore}%`,
+      input.presetId
     );
   }
 
@@ -523,7 +526,8 @@ export async function generatePetFutureImagesWithGemini(
         'current',
         0,
         `현재 (${stage.targetYear}년)`,
-        stage.petAgeText
+        stage.petAgeText,
+        input.presetId
       );
     } else if (stage.offsetYears <= 3) {
       perStageUrls[stage.id] =
@@ -534,7 +538,8 @@ export async function generatePetFutureImagesWithGemini(
               'prime',
               stage.offsetYears,
               `${stage.label} (${stage.targetYear}년)`,
-              stage.petAgeText
+              stage.petAgeText,
+              input.presetId
             );
     } else if (stage.offsetYears <= 8) {
       perStageUrls[stage.id] = await renderConsistentPetStagePhoto(
@@ -542,7 +547,8 @@ export async function generatePetFutureImagesWithGemini(
         'mature',
         stage.offsetYears,
         `${stage.label} (${stage.targetYear}년)`,
-        stage.petAgeText
+        stage.petAgeText,
+        input.presetId
       );
     } else {
       perStageUrls[stage.id] =
@@ -553,7 +559,8 @@ export async function generatePetFutureImagesWithGemini(
               'senior',
               stage.offsetYears,
               `${stage.label} (${stage.targetYear}년)`,
-              stage.petAgeText
+              stage.petAgeText,
+              input.presetId
             );
     }
   }
@@ -563,6 +570,7 @@ export async function generatePetFutureImagesWithGemini(
     primeAdult: primeAdultUrl,
     senior: seniorUrl,
     offspring: offspringUrl,
+    offspringGallery: [],
     perStageUrls,
     sourceMode,
     statusNote,

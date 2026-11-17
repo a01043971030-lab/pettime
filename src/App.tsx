@@ -8,13 +8,13 @@ import {
   Clock,
   Baby,
   Stethoscope,
-  Scissors,
   Share2,
   RotateCcw,
-  CheckCircle2,
   ShieldAlert,
   PawPrint,
   SlidersHorizontal,
+  HeartPulse,
+  Film,
 } from 'lucide-react';
 import {
   GeneratedPetImages,
@@ -34,8 +34,11 @@ import {
 import { BeforeAfterSlider } from './components/BeforeAfterSlider';
 import { LoadingTimeMachine } from './components/LoadingTimeMachine';
 import { ResultCardModal } from './components/ResultCardModal';
+import { OffspringSimulatorTab } from './components/OffspringSimulatorTab';
+import { AutoCareSystemTab, DailyCareMediaItem } from './components/AutoCareSystemTab';
+import { DailyAlbumSnsTab } from './components/DailyAlbumSnsTab';
 
-type MobileTab = 'timeline' | 'profile' | 'offspring' | 'health' | 'grooming';
+type MobileTab = 'timeline' | 'offspring' | 'autocare' | 'sns' | 'profile' | 'health';
 
 const SPECIES_OPTIONS: (PetSpeciesCategory | '자동 분석')[] = [
   '자동 분석',
@@ -53,9 +56,11 @@ const BIRTH_YEARS = Array.from({ length: 26 }, (_, i) => CURRENT_YEAR - i);
 const BIRTH_MONTHS = Array.from({ length: 12 }, (_, i) => i + 1);
 
 export function App() {
+  const [selectedPresetId, setSelectedPresetId] = useState<string>(SAMPLE_PET_PRESETS[0].id);
+
   const [petInput, setPetInput] = useState<PetInputInfo>(() => {
     const defaultPreset = SAMPLE_PET_PRESETS[0];
-    const presetPhoto = createSamplePresetPhoto(defaultPreset);
+    const presetPhoto = createSamplePresetPhoto(defaultPreset, 0);
     return {
       name: defaultPreset.name,
       birthYear: defaultPreset.birthYear,
@@ -65,19 +70,18 @@ export function App() {
       speciesHint: defaultPreset.species,
       photoDataUrl: presetPhoto,
       photoMimeType: 'image/jpeg',
+      presetId: defaultPreset.id,
     };
   });
 
-  const [selectedPresetId, setSelectedPresetId] = useState<string>(SAMPLE_PET_PRESETS[0].id);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [loadingMessage, setLoadingMessage] = useState<string>('');
   const [analysisResult, setAnalysisResult] = useState<PetTimeAnalysisResult | null>(null);
   const [generatedImages, setGeneratedImages] = useState<GeneratedPetImages | null>(null);
 
-  // Mobile-first tab navigation
-  const [activeTab, setActiveTab] = useState<MobileTab>('profile');
-  const [selectedStageIndex, setSelectedStageIndex] = useState<number>(2);
-  const [customYearOffset, setCustomYearOffset] = useState<number>(3);
+  const [activeTab, setActiveTab] = useState<MobileTab>('autocare');
+  const [selectedStageIndex, setSelectedStageIndex] = useState<number>(4);
+  const [customYearOffset, setCustomYearOffset] = useState<number>(8);
   const [customYearImageUrl, setCustomYearImageUrl] = useState<string>('');
   const [selectedHealthIdx, setSelectedHealthIdx] = useState<number>(0);
   const [checkedLongevityTips, setCheckedLongevityTips] = useState<Record<number, boolean>>({
@@ -86,6 +90,9 @@ export function App() {
     2: false,
   });
 
+  // Daily Care & SNS Shorts Media Log
+  const [dailyLogs, setDailyLogs] = useState<DailyCareMediaItem[]>([]);
+
   const [isResultCardOpen, setIsResultCardOpen] = useState<boolean>(false);
   const [showInputForm, setShowInputForm] = useState<boolean>(true);
 
@@ -93,7 +100,7 @@ export function App() {
   const cameraInputRef = useRef<HTMLInputElement | null>(null);
 
   const handleSelectPreset = (preset: SamplePetPreset) => {
-    const photoUrl = createSamplePresetPhoto(preset);
+    const photoUrl = createSamplePresetPhoto(preset, 0);
     setSelectedPresetId(preset.id);
     setPetInput({
       name: preset.name,
@@ -104,6 +111,7 @@ export function App() {
       speciesHint: preset.species,
       photoDataUrl: photoUrl,
       photoMimeType: 'image/jpeg',
+      presetId: preset.id,
     });
   };
 
@@ -118,6 +126,7 @@ export function App() {
         ...prev,
         photoDataUrl: dataUrl,
         photoMimeType: file.type || 'image/jpeg',
+        presetId: 'custom',
       }));
     };
     reader.readAsDataURL(file);
@@ -128,16 +137,21 @@ export function App() {
     if (!petInput.photoDataUrl) return;
 
     setIsLoading(true);
-    setLoadingMessage('사진 속 외모 특징과 생애 주기를 분석하고 있어요...');
+    setLoadingMessage('사진 속 외모·영양 상태와 생애 주기를 정밀 분석하고 있어요...');
 
     try {
+      const inputWithPreset: PetInputInfo = {
+        ...petInput,
+        presetId: selectedPresetId,
+      };
+
       const { result } = await analyzePetWithGemini(
-        petInput,
+        inputWithPreset,
         (msg) => setLoadingMessage(msg)
       );
 
       const images = await generatePetFutureImagesWithGemini(
-        petInput,
+        inputWithPreset,
         result,
         (msg) => setLoadingMessage(msg)
       );
@@ -145,15 +159,54 @@ export function App() {
       setAnalysisResult(result);
       setGeneratedImages(images);
 
-      const defaultIdx = result.timelineStages.length > 2 ? 2 : 0;
+      // Initialize Daily Logs with today's checkup & milestone snapshots so SNS Shorts works immediately
+      const today = new Date();
+      const dateStr = `${today.getMonth() + 1}월 ${today.getDate()}일`;
+      setDailyLogs([
+        {
+          id: 'log-init-1',
+          dateStr,
+          dataUrl: images.original,
+          isFromVideo: false,
+          memo: `${result.petName} 오늘의 건강·영양 체크 완료`,
+          nutritionScore: 96,
+          coatGlossScore: 97,
+          bcsStage: 5,
+          pregnancyNote: '정상',
+        },
+        {
+          id: 'log-init-2',
+          dateStr: '성년기 예측',
+          dataUrl: images.primeAdult,
+          isFromVideo: false,
+          memo: `${result.petName} 전성기 모습`,
+          nutritionScore: 98,
+          coatGlossScore: 98,
+          bcsStage: 5,
+          pregnancyNote: '정상',
+        },
+        {
+          id: 'log-init-3',
+          dateStr: '2세 아기',
+          dataUrl: images.offspring,
+          isFromVideo: false,
+          memo: `${result.petName} 2세 예측 스냅`,
+          nutritionScore: 99,
+          coatGlossScore: 99,
+          bcsStage: 5,
+          pregnancyNote: '정상',
+        },
+      ]);
+
+      const defaultIdx = result.timelineStages.length > 4 ? 4 : result.timelineStages.length - 1;
       setSelectedStageIndex(defaultIdx);
-      const initialOffset = result.timelineStages[defaultIdx]?.offsetYears ?? 3;
+      const initialOffset = result.timelineStages[defaultIdx]?.offsetYears ?? 8;
       setCustomYearOffset(initialOffset);
       setCustomYearImageUrl(
-        images.perStageUrls[result.timelineStages[defaultIdx]?.id] || images.primeAdult
+        images.perStageUrls[result.timelineStages[defaultIdx]?.id] || images.senior
       );
       setSelectedHealthIdx(0);
-      setActiveTab('profile');
+      setActiveTab('autocare');
       setShowInputForm(false);
       window.scrollTo({ top: 0, behavior: 'smooth' });
     } finally {
@@ -179,7 +232,7 @@ export function App() {
     const stageType =
       customYearOffset === 0
         ? 'current'
-        : customYearOffset <= 3
+        : customYearOffset <= 4
         ? 'prime'
         : customYearOffset <= 7
         ? 'mature'
@@ -190,7 +243,8 @@ export function App() {
       stageType,
       customYearOffset,
       `${customYearOffset}년 후 (${targetYear}년)`,
-      `${yrs}세 시절의 ${analysisResult.petName}`
+      `${yrs}세 시절의 ${analysisResult.petName}`,
+      selectedPresetId
     ).then((url) => {
       if (!cancelled) setCustomYearImageUrl(url);
     });
@@ -198,7 +252,7 @@ export function App() {
     return () => {
       cancelled = true;
     };
-  }, [customYearOffset, analysisResult, generatedImages]);
+  }, [customYearOffset, analysisResult, generatedImages, selectedPresetId]);
 
   const handleSelectStageMilestone = (idx: number) => {
     if (!analysisResult) return;
@@ -209,15 +263,35 @@ export function App() {
     }
   };
 
+  const handleAddDailyLog = (item: DailyCareMediaItem) => {
+    setDailyLogs((prev) => [item, ...prev]);
+  };
+
   const currentSelectedStage =
     analysisResult?.timelineStages[selectedStageIndex] ||
     analysisResult?.timelineStages[0];
 
   const activeBonusYears = Object.values(checkedLongevityTips).filter(Boolean).length;
 
+  const exactSliderYear = CURRENT_YEAR + customYearOffset;
+  const exactTotalMonths = (analysisResult?.currentAgeMonths || 12) + customYearOffset * 12;
+  const exactYears = Math.floor(exactTotalMonths / 12);
+  const exactRemMonths = exactTotalMonths % 12;
+  const exactPetAgeText =
+    exactYears > 0
+      ? exactRemMonths > 0
+        ? `${exactYears}세 ${exactRemMonths}개월`
+        : `${exactYears}세`
+      : `${exactTotalMonths}개월`;
+
+  const baseHumanAge =
+    Number(analysisResult?.humanAgeEquivalent.replace(/[^0-9]/g, '')) || 24;
+  const exactHumanAge =
+    baseHumanAge +
+    customYearOffset * (analysisResult?.species.includes('햄스터') ? 16 : 4);
+
   return (
     <div className="min-h-screen bg-[#F7F3EE] text-[#4A4E69] flex justify-center">
-      {/* Mobile-First App Container (Centered smartphone view on desktop, 100% full width on mobile) */}
       <div className="w-full max-w-[460px] min-h-screen bg-[#FFFDF9] shadow-[0_0_40px_rgba(74,78,105,0.08)] flex flex-col justify-between pb-24">
         <div>
           {/* Compact Mobile Header */}
@@ -244,7 +318,7 @@ export function App() {
                   className="px-2.5 py-1.5 rounded-full bg-[#FFF2EF] text-[#4A4E69] text-xs font-bold flex items-center gap-1 cursor-pointer active:scale-95 transition"
                 >
                   <RotateCcw className="w-3.5 h-3.5 text-[#FF7E67]" />
-                  <span>다시하기</span>
+                  <span>처음으로</span>
                 </button>
                 <button
                   type="button"
@@ -258,7 +332,6 @@ export function App() {
             )}
           </header>
 
-          {/* Main Content Area */}
           <main className="px-4 pt-4 space-y-4">
             {/* 1. LOADING SCREEN */}
             {isLoading && (
@@ -275,7 +348,7 @@ export function App() {
                 <div className="bg-white rounded-[20px] p-4 shadow-[0_6px_20px_-4px_rgba(74,78,105,0.06)] border border-[#FFE3DE] space-y-4">
                   <div className="flex items-center justify-between">
                     <h1 className="text-lg font-extrabold text-[#4A4E69]">
-                      우리 아이 미래 타임머신
+                      AI 반려동물 자동케어 & 타임머신
                     </h1>
                     {analysisResult && (
                       <button
@@ -464,16 +537,16 @@ export function App() {
                     className="w-full py-4 rounded-[18px] bg-[#FF7E67] hover:bg-[#F5644A] text-white font-extrabold text-base shadow-[0_8px_20px_-4px_rgba(255,126,103,0.5)] flex items-center justify-center gap-2 active:scale-[0.98] transition cursor-pointer"
                   >
                     <Sparkles className="w-5 h-5" />
-                    <span>우리 아이 미래 타임머신 가동하기</span>
+                    <span>AI 자동 관리 & 미래 타임머신 시작하기</span>
                   </button>
                 </div>
               </form>
             )}
 
-            {/* 3. MOBILE RESULT DASHBOARD (Clean, Focused, Practical) */}
+            {/* 3. MOBILE RESULT DASHBOARD */}
             {!isLoading && !showInputForm && analysisResult && generatedImages && currentSelectedStage && (
               <div className="space-y-4">
-                {/* Always-Visible Compact Pet Summary Header Card */}
+                {/* Compact Pet Summary Header Card */}
                 <div className="bg-white rounded-[20px] p-3.5 border border-[#FFE3DE] shadow-xs flex items-center gap-3">
                   <img
                     src={generatedImages.original}
@@ -496,97 +569,37 @@ export function App() {
                 </div>
 
                 {/* =========================================================
-                    TAB 1: 수명 예측 & 프로필 (간단·명료·핵심만)
+                    TAB: 자동케어 (영양제·미용·예방접종·영양상태·임신상태 정밀 관리)
                 ========================================================= */}
-                {activeTab === 'profile' && (
-                  <div className="space-y-3.5">
-                    {/* Expected Together Year Highlight Card */}
-                    <div className="rounded-[20px] bg-gradient-to-br from-[#FF7E67] to-[#F5644A] text-white p-5 shadow-md space-y-2">
-                      <span className="inline-block text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-white/20">
-                        품종 평균 수명 {analysisResult.lifespanPrediction.breedAverageYears} 기준
-                      </span>
-                      <h2 className="text-xl font-extrabold leading-snug">
-                        “{analysisResult.lifespanPrediction.expectedTogetherYear + activeBonusYears}년까지 건강하게 함께할 수 있어요!”
-                      </h2>
-                      <p className="text-xs text-[#FFF2EF] leading-relaxed">
-                        꾸준한 관리 시 평균보다 <strong>+{activeBonusYears}년</strong> 더 오래 행복하게 함께할 수 있어요.
-                      </p>
-                    </div>
-
-                    {/* 2x2 Key Metrics */}
-                    <div className="grid grid-cols-2 gap-2.5">
-                      <div className="bg-white p-3.5 rounded-[16px] border border-[#FFE3DE]">
-                        <span className="text-[11px] text-[#6C708A] font-semibold block">추정 품종</span>
-                        <span className="text-sm font-extrabold text-[#4A4E69] mt-0.5 block">
-                          {analysisResult.estimatedBreed}
-                        </span>
-                      </div>
-                      <div className="bg-white p-3.5 rounded-[16px] border border-[#FFE3DE]">
-                        <span className="text-[11px] text-[#6C708A] font-semibold block">현재 나이</span>
-                        <span className="text-sm font-extrabold text-[#FF7E67] mt-0.5 block">
-                          {analysisResult.currentAgeLabel}
-                        </span>
-                      </div>
-                      <div className="bg-white p-3.5 rounded-[16px] border border-[#FFE3DE]">
-                        <span className="text-[11px] text-[#6C708A] font-semibold block">사람 나이 환산</span>
-                        <span className="text-sm font-extrabold text-[#4A4E69] mt-0.5 block">
-                          {analysisResult.humanAgeEquivalent}
-                        </span>
-                      </div>
-                      <div className="bg-white p-3.5 rounded-[16px] border border-[#FFE3DE]">
-                        <span className="text-[11px] text-[#6C708A] font-semibold block">남은 행복 시간</span>
-                        <span className="text-sm font-extrabold text-[#2F6F6B] mt-0.5 block">
-                          약 {analysisResult.lifespanPrediction.remainingHappyYears + activeBonusYears}년 이상
-                        </span>
-                      </div>
-                    </div>
-
-                    {/* Longevity Boosters Checklist */}
-                    <div className="bg-white rounded-[20px] p-4 border border-[#FFE3DE] space-y-2.5">
-                      <h3 className="text-xs font-extrabold text-[#4A4E69]">
-                        ✅ 수명을 늘리는 3가지 실천 (터치 시 예상 연도 반영)
-                      </h3>
-                      {analysisResult.lifespanPrediction.keyLongevityFactors.map((factor, idx) => {
-                        const checked = Boolean(checkedLongevityTips[idx]);
-                        return (
-                          <label
-                            key={idx}
-                            className="flex items-center gap-2.5 p-3 rounded-[14px] bg-[#FFFDF9] border border-[#F3E3D3] cursor-pointer text-xs font-bold text-[#4A4E69]"
-                          >
-                            <input
-                              type="checkbox"
-                              checked={checked}
-                              onChange={() =>
-                                setCheckedLongevityTips((prev) => ({
-                                  ...prev,
-                                  [idx]: !prev[idx],
-                                }))
-                              }
-                              className="w-4 h-4 accent-[#FF7E67]"
-                            />
-                            <span>{factor}</span>
-                          </label>
-                        );
-                      })}
-                    </div>
-
-                    {/* Quick Button to Timeline */}
-                    <button
-                      type="button"
-                      onClick={() => setActiveTab('timeline')}
-                      className="w-full py-3.5 rounded-[16px] bg-[#FFF2EF] text-[#FF7E67] font-extrabold text-sm border border-[#FFC5BB] cursor-pointer"
-                    >
-                      연도별 미래 성장·노화 모습 보러가기 →
-                    </button>
-                  </div>
+                {activeTab === 'autocare' && (
+                  <AutoCareSystemTab
+                    analysisResult={analysisResult}
+                    basePhotoUrl={generatedImages.original}
+                    dailyLogs={dailyLogs}
+                    onAddDailyLog={handleAddDailyLog}
+                    onGoToSnsStudio={() => {
+                      setActiveTab('sns');
+                      window.scrollTo({ top: 0, behavior: 'smooth' });
+                    }}
+                  />
                 )}
 
                 {/* =========================================================
-                    TAB 2: 1년 단위 성장·노화 타임라인 & 비교 슬라이더
+                    TAB: SNS쇼츠 (그날그날 사진·영상 원터치 앨범 & 유튜브 쇼츠)
+                ========================================================= */}
+                {activeTab === 'sns' && (
+                  <DailyAlbumSnsTab
+                    analysisResult={analysisResult}
+                    dailyLogs={dailyLogs}
+                    onAddDailyLog={handleAddDailyLog}
+                  />
+                )}
+
+                {/* =========================================================
+                    TAB: 미래모습 (1년 단위 성장·노화 타임라인 & 비교 슬라이더)
                 ========================================================= */}
                 {activeTab === 'timeline' && (
                   <div className="bg-white rounded-[20px] p-4 border border-[#FFE3DE] space-y-4">
-                    {/* Quick Stage Chips */}
                     <div className="grid grid-cols-3 gap-1.5">
                       {analysisResult.timelineStages.map((stage, idx) => {
                         const isSelected =
@@ -615,7 +628,6 @@ export function App() {
                       })}
                     </div>
 
-                    {/* 1-Year Granular Slider */}
                     <div className="p-3 rounded-[14px] bg-[#FFF9F0] border border-[#F9E4C8] space-y-1.5">
                       <div className="flex items-center justify-between text-xs font-extrabold">
                         <span className="flex items-center gap-1 text-[#4A4E69]">
@@ -625,7 +637,7 @@ export function App() {
                         <span className="text-[#FF7E67]">
                           {customYearOffset === 0
                             ? `현재 (${CURRENT_YEAR}년)`
-                            : `${customYearOffset}년 후 (${CURRENT_YEAR + customYearOffset}년)`}
+                            : `${customYearOffset}년 후 (${exactSliderYear}년)`}
                         </span>
                       </div>
                       <input
@@ -651,7 +663,6 @@ export function App() {
                       />
                     </div>
 
-                    {/* Draggable Before & After Slider */}
                     <BeforeAfterSlider
                       beforeImage={generatedImages.original}
                       afterImage={
@@ -665,13 +676,12 @@ export function App() {
                       }
                     />
 
-                    {/* Concise Stage Summary & Pet Quote */}
                     <div className="p-3.5 rounded-[16px] bg-[#FFFDF9] border border-[#F3E3D3] space-y-1.5">
                       <div className="flex items-center justify-between text-xs font-bold">
                         <span className="text-[#FF7E67]">
-                          {currentSelectedStage.targetYear}년 ({currentSelectedStage.petAgeText})
+                          {exactSliderYear}년 ({exactPetAgeText})
                         </span>
-                        <span className="text-[#6C708A]">{currentSelectedStage.humanAgeText}</span>
+                        <span className="text-[#6C708A]">사람 나이 약 {exactHumanAge}세</span>
                       </div>
                       <p className="text-xs text-[#4A4E69] leading-relaxed">
                         {currentSelectedStage.physicalChangeDesc}
@@ -680,7 +690,7 @@ export function App() {
 
                     <div className="p-3.5 rounded-[16px] bg-[#FFF2EF] border border-[#FFC5BB]">
                       <div className="text-[11px] font-extrabold text-[#FF7E67] mb-1">
-                        💌 {currentSelectedStage.targetYear}년의 {analysisResult.petName} 한마디
+                        💌 {exactSliderYear}년의 {analysisResult.petName} 한마디
                       </div>
                       <p className="text-xs font-bold text-[#4A4E69] leading-relaxed">
                         “{currentSelectedStage.petDiaryQuote}”
@@ -690,71 +700,91 @@ export function App() {
                 )}
 
                 {/* =========================================================
-                    TAB 3: 미래 2세(새끼) 예측 시뮬레이터
+                    TAB: 2세예측 (상대 펫 업로드 + 사진 5장 + 3초 영상!)
                 ========================================================= */}
                 {activeTab === 'offspring' && (
-                  <div className="bg-white rounded-[20px] p-4 border border-[#FFE3DE] space-y-4">
-                    <div className="flex items-center justify-between">
-                      <h2 className="text-base font-extrabold text-[#4A4E69]">
-                        만약 우리 아이가 2세를 낳는다면?
-                      </h2>
-                      <span className="text-xs font-bold px-2.5 py-1 rounded-full bg-[#FFF8E6] text-[#D9822B]">
-                        닮은꼴 {analysisResult.offspringPrediction.parentResemblanceScore}%
+                  <OffspringSimulatorTab
+                    analysisResult={analysisResult}
+                    parent1PhotoUrl={generatedImages.original}
+                  />
+                )}
+
+                {/* =========================================================
+                    TAB: 수명예측 & 프로필
+                ========================================================= */}
+                {activeTab === 'profile' && (
+                  <div className="space-y-3.5">
+                    <div className="rounded-[20px] bg-gradient-to-br from-[#FF7E67] to-[#F5644A] text-white p-5 shadow-md space-y-2">
+                      <span className="inline-block text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-white/20">
+                        품종 평균 수명 {analysisResult.lifespanPrediction.breedAverageYears} 기준
                       </span>
-                    </div>
-
-                    <div className="relative rounded-[20px] overflow-hidden border-2 border-[#FFC5BB] aspect-square w-full max-w-[300px] mx-auto">
-                      <img
-                        src={generatedImages.offspring}
-                        alt="2세 예측 모습"
-                        className="w-full h-full object-cover"
-                      />
-                      <div className="absolute bottom-3 right-3 w-16 h-16 rounded-full border-2 border-white shadow-md overflow-hidden bg-white">
-                        <img
-                          src={generatedImages.original}
-                          alt="부모 원본"
-                          className="w-full h-full object-cover"
-                        />
-                      </div>
-                    </div>
-
-                    <div className="p-3.5 rounded-[16px] bg-[#FFF9F0] border border-[#F9E4C8] space-y-1.5">
-                      <div className="text-sm font-extrabold text-[#4A4E69]">
-                        🍼 애칭: {analysisResult.offspringPrediction.babyNickname}
-                      </div>
-                      <p className="text-xs text-[#4A4E69] leading-relaxed">
-                        {analysisResult.offspringPrediction.furAndEyeDesc}
+                      <h2 className="text-xl font-extrabold leading-snug">
+                        “{analysisResult.lifespanPrediction.expectedTogetherYear + activeBonusYears}년까지 건강하게 함께할 수 있어요!”
+                      </h2>
+                      <p className="text-xs text-[#FFF2EF] leading-relaxed">
+                        꾸준한 관리 시 평균보다 <strong>+{activeBonusYears}년</strong> 더 오래 행복하게 함께할 수 있어요.
                       </p>
                     </div>
 
-                    <div className="p-3.5 rounded-[16px] bg-[#FFFDF9] border border-[#F3E3D3] space-y-2">
-                      <div className="text-xs font-extrabold text-[#4A4E69]">
-                        🧬 물려받은 외모 & 성격 포인트
+                    <div className="grid grid-cols-2 gap-2.5">
+                      <div className="bg-white p-3.5 rounded-[16px] border border-[#FFE3DE]">
+                        <span className="text-[11px] text-[#6C708A] font-semibold block">추정 품종</span>
+                        <span className="text-sm font-extrabold text-[#4A4E69] mt-0.5 block">
+                          {analysisResult.estimatedBreed}
+                        </span>
                       </div>
-                      <div className="flex flex-wrap gap-1.5">
-                        {analysisResult.offspringPrediction.personalityTraits.map((trait, i) => (
-                          <span
-                            key={i}
-                            className="px-2.5 py-1 rounded-full bg-[#FFF2EF] text-[#FF7E67] text-xs font-bold"
+                      <div className="bg-white p-3.5 rounded-[16px] border border-[#FFE3DE]">
+                        <span className="text-[11px] text-[#6C708A] font-semibold block">현재 나이</span>
+                        <span className="text-sm font-extrabold text-[#FF7E67] mt-0.5 block">
+                          {analysisResult.currentAgeLabel}
+                        </span>
+                      </div>
+                      <div className="bg-white p-3.5 rounded-[16px] border border-[#FFE3DE]">
+                        <span className="text-[11px] text-[#6C708A] font-semibold block">사람 나이 환산</span>
+                        <span className="text-sm font-extrabold text-[#4A4E69] mt-0.5 block">
+                          {analysisResult.humanAgeEquivalent}
+                        </span>
+                      </div>
+                      <div className="bg-white p-3.5 rounded-[16px] border border-[#FFE3DE]">
+                        <span className="text-[11px] text-[#6C708A] font-semibold block">남은 행복 시간</span>
+                        <span className="text-sm font-extrabold text-[#2F6F6B] mt-0.5 block">
+                          약 {analysisResult.lifespanPrediction.remainingHappyYears + activeBonusYears}년 이상
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="bg-white rounded-[20px] p-4 border border-[#FFE3DE] space-y-2.5">
+                      <h3 className="text-xs font-extrabold text-[#4A4E69]">
+                        ✅ 수명을 늘리는 3가지 실천 (터치 시 예상 연도 반영)
+                      </h3>
+                      {analysisResult.lifespanPrediction.keyLongevityFactors.map((factor, idx) => {
+                        const checked = Boolean(checkedLongevityTips[idx]);
+                        return (
+                          <label
+                            key={idx}
+                            className="flex items-center gap-2.5 p-3 rounded-[14px] bg-[#FFFDF9] border border-[#F3E3D3] cursor-pointer text-xs font-bold text-[#4A4E69]"
                           >
-                            #{trait}
-                          </span>
-                        ))}
-                      </div>
-                      <ul className="space-y-1 pt-1">
-                        {analysisResult.offspringPrediction.inheritedFeatures.map((feat, i) => (
-                          <li key={i} className="text-xs text-[#4A4E69] flex items-start gap-1.5">
-                            <CheckCircle2 className="w-3.5 h-3.5 text-[#FF7E67] shrink-0 mt-0.5" />
-                            <span>{feat}</span>
-                          </li>
-                        ))}
-                      </ul>
+                            <input
+                              type="checkbox"
+                              checked={checked}
+                              onChange={() =>
+                                setCheckedLongevityTips((prev) => ({
+                                  ...prev,
+                                  [idx]: !prev[idx],
+                                }))
+                              }
+                              className="w-4 h-4 accent-[#FF7E67]"
+                            />
+                            <span>{factor}</span>
+                          </label>
+                        );
+                      })}
                     </div>
                   </div>
                 )}
 
                 {/* =========================================================
-                    TAB 4: 연도별 건강 주의보 & 예방 로드맵 (모바일 탭 선택형)
+                    TAB: 연도별 건강 주의보 & 맞춤 미용 로드맵
                 ========================================================= */}
                 {activeTab === 'health' && (
                   <div className="bg-white rounded-[20px] p-4 border border-[#FFE3DE] space-y-4">
@@ -762,7 +792,6 @@ export function App() {
                       연도별 아플 곳 주의보 & 검진 로드맵
                     </h2>
 
-                    {/* Year Selector Pills */}
                     <div className="flex gap-1.5 overflow-x-auto pb-1 custom-scrollbar">
                       {analysisResult.healthRoadmap.map((item, idx) => {
                         const active = selectedHealthIdx === idx;
@@ -786,7 +815,6 @@ export function App() {
                       })}
                     </div>
 
-                    {/* Selected Year Health Card */}
                     {analysisResult.healthRoadmap[selectedHealthIdx] && (() => {
                       const h = analysisResult.healthRoadmap[selectedHealthIdx];
                       return (
@@ -846,102 +874,21 @@ export function App() {
                     })()}
                   </div>
                 )}
-
-                {/* =========================================================
-                    TAB 5: 미용·스타일링 & 케어 꿀팁 (간결·실용 요약)
-                ========================================================= */}
-                {activeTab === 'grooming' && (
-                  <div className="bg-white rounded-[20px] p-4 border border-[#FFE3DE] space-y-3.5">
-                    <h2 className="text-base font-extrabold text-[#4A4E69]">
-                      맞춤 미용 · 목욕 주기 · 장수 놀이법
-                    </h2>
-
-                    {/* Brushing & Bathing Quick Box */}
-                    <div className="grid grid-cols-2 gap-2.5">
-                      <div className="p-3 rounded-[16px] bg-[#FFF9F0] border border-[#F9E4C8]">
-                        <span className="text-[11px] font-extrabold text-[#FF7E67] block">
-                          🪮 권장 빗질 주기
-                        </span>
-                        <span className="text-xs font-extrabold text-[#4A4E69] mt-1 block">
-                          {analysisResult.groomingAndCare.brushingSchedule.frequency}
-                        </span>
-                        <span className="text-[11px] text-[#6C708A] mt-1 block">
-                          {analysisResult.groomingAndCare.brushingSchedule.toolRecommendation}
-                        </span>
-                      </div>
-                      <div className="p-3 rounded-[16px] bg-[#E8F6F5] border border-[#68B0AB]/30">
-                        <span className="text-[11px] font-extrabold text-[#2F6F6B] block">
-                          🛁 권장 목욕 주기
-                        </span>
-                        <span className="text-xs font-extrabold text-[#4A4E69] mt-1 block">
-                          {analysisResult.groomingAndCare.bathingAndHygiene.frequency}
-                        </span>
-                        <span className="text-[11px] text-[#6C708A] mt-1 block">
-                          36.5~37.5°C 미온수 케어
-                        </span>
-                      </div>
-                    </div>
-
-                    {/* Recommended Styles */}
-                    <div className="space-y-2">
-                      <div className="text-xs font-extrabold text-[#4A4E69]">
-                        ✂️ 추천 스타일링 BEST 3
-                      </div>
-                      {analysisResult.groomingAndCare.recommendedStyles.map((st, idx) => (
-                        <div
-                          key={idx}
-                          className="p-3 rounded-[14px] bg-[#FFFDF9] border border-[#F3E3D3]"
-                        >
-                          <div className="flex items-center justify-between">
-                            <span className="text-xs font-extrabold text-[#4A4E69]">
-                              {st.styleName}
-                            </span>
-                            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#FFF2EF] text-[#FF7E67]">
-                              {st.suitabilityBadge}
-                            </span>
-                          </div>
-                          <p className="text-xs text-[#6C708A] mt-1 leading-relaxed">
-                            {st.tip}
-                          </p>
-                        </div>
-                      ))}
-                    </div>
-
-                    {/* Longevity Play & Environment Tips */}
-                    <div className="space-y-2">
-                      <div className="text-xs font-extrabold text-[#4A4E69]">
-                        🎾 수명 늘리는 산책·놀이 꿀팁
-                      </div>
-                      {analysisResult.groomingAndCare.longevityPlayTips.map((play, idx) => (
-                        <div
-                          key={idx}
-                          className="p-3 rounded-[14px] bg-[#FFF2EF]/60 border border-[#FFE3DE]"
-                        >
-                          <div className="text-xs font-extrabold text-[#4A4E69]">
-                            {play.title}
-                          </div>
-                          <p className="text-xs text-[#6C708A] mt-0.5 leading-relaxed">
-                            {play.description}
-                          </p>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
               </div>
             )}
           </main>
         </div>
 
-        {/* Fixed Bottom Mobile Tab Bar (Shown when analysis results are active) */}
+        {/* Fixed Bottom 6-Tab Mobile Bar */}
         {!isLoading && !showInputForm && analysisResult && (
-          <nav className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[460px] z-40 bg-white/95 backdrop-blur-md border-t border-[#FFE3DE] px-2 py-1.5 grid grid-cols-5 gap-1 shadow-[0_-4px_20px_rgba(74,78,105,0.08)]">
+          <nav className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[460px] z-40 bg-white/95 backdrop-blur-md border-t border-[#FFE3DE] px-1.5 py-1.5 grid grid-cols-6 gap-1 shadow-[0_-4px_20px_rgba(74,78,105,0.08)]">
             {[
-              { id: 'profile', label: '수명예측', icon: Heart },
+              { id: 'autocare', label: '자동케어', icon: HeartPulse },
+              { id: 'sns', label: 'SNS쇼츠', icon: Film },
               { id: 'timeline', label: '미래모습', icon: Clock },
               { id: 'offspring', label: '2세예측', icon: Baby },
+              { id: 'profile', label: '수명예측', icon: Heart },
               { id: 'health', label: '건강체크', icon: Stethoscope },
-              { id: 'grooming', label: '케어꿀팁', icon: Scissors },
             ].map((tab) => {
               const IconComp = tab.icon;
               const active = activeTab === tab.id;
@@ -953,14 +900,14 @@ export function App() {
                     setActiveTab(tab.id as MobileTab);
                     window.scrollTo({ top: 0, behavior: 'smooth' });
                   }}
-                  className={`py-2 rounded-[14px] flex flex-col items-center justify-center gap-1 transition cursor-pointer ${
+                  className={`py-2 rounded-[12px] flex flex-col items-center justify-center gap-0.5 transition cursor-pointer ${
                     active
                       ? 'bg-[#FFF2EF] text-[#FF7E67] font-extrabold'
                       : 'text-[#6C708A] font-semibold'
                   }`}
                 >
                   <IconComp className="w-4 h-4" />
-                  <span className="text-[11px]">{tab.label}</span>
+                  <span className="text-[10px] tracking-tight">{tab.label}</span>
                 </button>
               );
             })}
